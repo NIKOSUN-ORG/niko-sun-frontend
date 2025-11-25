@@ -1,5 +1,4 @@
-
-
+// IMPORTANTE: Actualiza esta dirección con la dirección de tu contrato desplegado
 export const SOLAR_TOKEN_ADDRESS = "0xYourContractAddressHere";
 
 export const SOLAR_TOKEN_ABI = [
