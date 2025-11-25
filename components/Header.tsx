@@ -1,118 +1,30 @@
 "use client"
-import { Menu, X } from "lucide-react"
-import { useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-
+import { Sun } from "lucide-react"
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  const handleLinkClick = () => {
-    setIsMenuOpen(false)
-  }
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-6 py-5">
+    <header className="fixed top-0 right-0 left-0 lg:left-72 z-30 bg-card-bg/90 backdrop-blur-md border-b border-card-border shadow-sm">
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Blockchain Logo" className="w-10 h-10 object-contain" />
-            <span className="text-xl font-bold text-foreground">SmartPay</span>
+          {/* Logo for mobile */}
+          <div className="flex items-center gap-3 lg:hidden">
+            <div className="p-2 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg">
+              <Sun className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Niko Sun
+            </span>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-10">
-            <a
-              href="#hero"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Inicio
-            </a>
-            <a
-              href="#features"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Características
-            </a>
-            <a
-              href="#contracts"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contratos
-            </a>
-            <a
-              href="#how-it-works"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cómo Funciona
-            </a>
-            <a
-              href="#benefits"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Beneficios
-            </a>
-          </nav>
+          {/* Spacer for desktop */}
+          <div className="hidden lg:block flex-1" />
 
-          <div className="hidden lg:block">
+          {/* Connect Button */}
+          <div className="ml-auto">
             <ConnectButton />
           </div>
-
-          <button
-            className="lg:hidden text-foreground"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
-
-        {isMenuOpen && (
-          <nav className="lg:hidden mt-6 pb-4 flex flex-col gap-4">
-            <a
-              href="#hero"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Inicio
-            </a>
-            <a
-              href="#features"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Características
-            </a>
-            <a
-              href="#contracts"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contratos
-            </a>
-            <a
-              href="#how-it-works"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cómo Funciona
-            </a>
-            <a
-              href="#benefits"
-              onClick={handleLinkClick}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Beneficios
-            </a>
-            <div className="pt-4 border-t border-border">
-              <ConnectButton />
-            </div>
-          </nav>
-        )}
       </div>
     </header>
   )
