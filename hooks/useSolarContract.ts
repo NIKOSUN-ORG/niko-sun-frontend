@@ -101,7 +101,7 @@ export function useCreateProject() {
       address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
       abi: SOLAR_TOKEN_ABI,
       functionName: 'createProject',
-      args: [BigInt(totalSupply), BigInt(priceWei)],
+      args: [BigInt(totalSupply), priceWei],
     })
   }
 

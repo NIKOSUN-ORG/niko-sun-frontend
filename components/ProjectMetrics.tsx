@@ -88,8 +88,11 @@ function ProjectMetricCard({ projectId }: { projectId: number }) {
 
   if (!project || !metrics) return null
 
-  const [totalSupply, minted, priceWei, active] = project as [bigint, bigint, bigint, boolean, bigint]
-  const [totalEnergyKwh, totalDistributed, lastUpdate] = metrics as [bigint, bigint, bigint]
+  const projectData = project as { totalSupply: bigint; minted: bigint; priceWei: bigint; active: boolean; createdAt: bigint }
+  const { totalSupply, minted, priceWei, active } = projectData
+
+  const metricsData = metrics as { totalEnergyKwh: bigint; totalDistributed: bigint; lastUpdate: bigint }
+  const { totalEnergyKwh, totalDistributed, lastUpdate } = metricsData
 
   const progress = Number(minted) / Number(totalSupply) * 100
 

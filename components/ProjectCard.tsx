@@ -25,7 +25,12 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
 
   if (!project) return null
 
-  const [totalSupply, minted, priceWei, active] = project as [bigint, bigint, bigint, boolean, bigint]
+  const projectData = project as { totalSupply: bigint; minted: bigint; priceWei: bigint; active: boolean; createdAt: bigint }
+  const { totalSupply, minted, priceWei, active } = projectData
+
+  const metricsData = metrics ? (metrics as { totalEnergyKwh: bigint; totalDistributed: bigint; lastUpdate: bigint }) : null
+  const totalEnergyKwh = metricsData ? Number(metricsData.totalEnergyKwh) : 0
+
   const available = availableTokens ? Number(availableTokens) : Number(totalSupply - minted)
   const progress = Number(minted) / Number(totalSupply) * 100
 
@@ -34,7 +39,8 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
     mint(projectId, amount, priceWei)
   }
 
-  const totalCost = (Number(priceWei) * amount) / 1e18
+  const totalCostWei = priceWei * BigInt(amount)
+  const totalCost = formatEther(totalCostWei)
 
   return (
     <div className="group rounded-2xl border-2 border-card-border bg-card-bg p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] card-gradient">
@@ -50,11 +56,11 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             </p>
           </div>
         </div>
-        {metrics && (
+        {metricsData && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 border border-accent/30">
             <Zap className="w-4 h-4 text-accent" />
             <span className="text-sm font-semibold text-foreground">
-              {Number((metrics as any)[0])} kWh
+              {totalEnergyKwh} kWh
             </span>
           </div>
         )}
@@ -118,7 +124,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
               </button>
             </div>
             <p className="text-sm text-center text-muted-foreground">
-              Total: <span className="font-bold text-foreground">{totalCost.toFixed(6)} ETH</span>
+              Total: <span className="font-bold text-foreground">{totalCost} ETH</span>
             </p>
             {isSuccess && (
               <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/30">
