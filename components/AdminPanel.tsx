@@ -218,7 +218,7 @@ function CreateProjectForm() {
 
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          Precio por Token (ETH)
+          Precio por Token (tSYS)
         </label>
         <input
           type="text"
@@ -538,8 +538,8 @@ function RevenueForm() {
         />
         {projectId && project && (
           <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
-            <p><span className="font-semibold">Revenue Total:</span> {formatEther(project.totalRevenue)} ETH</p>
-            <p><span className="font-semibold">Balance de Ventas:</span> {salesBalance ? formatEther(salesBalance) : '0'} ETH</p>
+            <p><span className="font-semibold">Revenue Total:</span> {formatEther(project.totalRevenue)} tSYS</p>
+            <p><span className="font-semibold">Balance de Ventas:</span> {salesBalance ? formatEther(salesBalance) : '0'} tSYS</p>
             <p><span className="font-semibold">Energía Total:</span> {Number(project.totalEnergyKwh)} kWh</p>
           </div>
         )}
@@ -556,7 +556,7 @@ function RevenueForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
-                Monto (ETH)
+                Monto (tSYS)
               </label>
               <input
                 type="text"
@@ -641,7 +641,7 @@ function RevenueForm() {
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">
-              Monto a Retirar (ETH)
+              Monto a Retirar (tSYS)
             </label>
             <input
               type="text"
@@ -712,7 +712,7 @@ function OwnerPanel() {
         </h4>
 
         <div className="mb-4 p-3 rounded-lg bg-muted/10 text-sm">
-          <p><span className="font-semibold">Balance Total del Contrato:</span> {balance ? formatEther(balance) : '0'} ETH</p>
+          <p><span className="font-semibold">Balance Total del Contrato:</span> {balance ? formatEther(balance) : '0'} tSYS</p>
           <p><span className="font-semibold">Estado:</span> {isPaused ? '⏸️ Pausado' : '▶️ Activo'}</p>
         </div>
 

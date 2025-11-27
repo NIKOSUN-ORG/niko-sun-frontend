@@ -57,13 +57,13 @@ export default function DashboardPage() {
           <QuickStatCard
             icon={<Zap className="w-5 h-5" />}
             label="Por Reclamar"
-            value={`${formatEther(totalClaimable)} ETH`}
+            value={`${formatEther(totalClaimable)} tSYS`}
             color="text-green-500"
           />
           <QuickStatCard
             icon={<TrendingUp className="w-5 h-5" />}
             label="Total Reclamado"
-            value={`${formatEther(totalClaimed)} ETH`}
+            value={`${formatEther(totalClaimed)} tSYS`}
             color="text-accent"
           />
         </div>

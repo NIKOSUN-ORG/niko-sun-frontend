@@ -86,7 +86,7 @@ export function UserBalance() {
               <Gift className="w-8 h-8 text-green-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Recompensas Disponibles</p>
-                <p className="text-2xl font-bold text-green-500">{formatEther(totalClaimable)} ETH</p>
+                <p className="text-2xl font-bold text-green-500">{formatEther(totalClaimable)} tSYS</p>
                 <p className="text-xs text-muted-foreground">En {projectsWithClaimable.length} proyecto(s)</p>
               </div>
             </div>
@@ -198,13 +198,13 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
         <div className="p-2 rounded-lg bg-background/50">
           <p className="text-xs text-muted-foreground">Por Reclamar</p>
           <p className={`text-sm font-bold ${hasClaimable ? 'text-green-500' : 'text-muted-foreground'}`}>
-            {parseFloat(formatEther(claimableAmount)).toFixed(6)} ETH
+            {parseFloat(formatEther(claimableAmount)).toFixed(6)} tSYS
           </p>
         </div>
         <div className="p-2 rounded-lg bg-background/50">
           <p className="text-xs text-muted-foreground">Total Reclamado</p>
           <p className="text-sm font-bold text-secondary">
-            {parseFloat(formatEther(totalClaimed)).toFixed(6)} ETH
+            {parseFloat(formatEther(totalClaimed)).toFixed(6)} tSYS
           </p>
         </div>
       </div>

@@ -135,7 +135,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-xs text-muted-foreground mb-1">Precio</p>
-            <p className="text-lg font-bold text-primary">{formatEther(priceWei)} ETH</p>
+            <p className="text-lg font-bold text-primary">{formatEther(priceWei)} tSYS</p>
           </div>
           <div className="p-3 rounded-lg bg-secondary/5 border border-secondary/20">
             <p className="text-xs text-muted-foreground mb-1">Disponibles</p>
@@ -155,7 +155,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
                 <Gift className="w-5 h-5 text-green-500" />
                 <div>
                   <p className="text-xs text-muted-foreground">Recompensas disponibles</p>
-                  <p className="text-lg font-bold text-green-500">{formatEther(claimable)} ETH</p>
+                  <p className="text-lg font-bold text-green-500">{formatEther(claimable)} tSYS</p>
                 </div>
               </div>
               <button
@@ -208,7 +208,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
               </button>
             </div>
             <p className="text-sm text-center text-muted-foreground">
-              Total: <span className="font-bold text-foreground">{totalCost} ETH</span>
+              Total: <span className="font-bold text-foreground">{totalCost} tSYS</span>
             </p>
             {isSuccess && (
               <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/30">

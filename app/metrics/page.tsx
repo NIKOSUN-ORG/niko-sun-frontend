@@ -1,7 +1,62 @@
+"use client"
 import { ProjectMetrics } from "@/components/ProjectMetrics"
-import { BarChart3, TrendingUp } from "lucide-react"
+import { BarChart3, TrendingUp, Shield, Lock } from "lucide-react"
+import { useAccount } from 'wagmi'
+import { useContractOwner } from '@/hooks/useSolarContract'
+import Link from 'next/link'
 
 export default function MetricsPage() {
+  const { address, isConnected } = useAccount()
+  const { owner, isLoading } = useContractOwner()
+
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full skeleton-shimmer" />
+          <div className="h-6 w-48 mx-auto rounded skeleton-shimmer" />
+        </div>
+      </div>
+    )
+  }
+
+  // Si no está conectado o no es owner, mostrar acceso denegado
+  if (!isConnected || !isOwner) {
+    return (
+      <div className="space-y-8">
+        <div className="rounded-2xl border-2 border-card-border bg-card-bg p-12 shadow-lg text-center card-gradient animate-fade-in">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+            <Lock className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Acceso Restringido
+          </h2>
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
+            Esta sección está reservada únicamente para el propietario del contrato.
+            Las métricas y estadísticas globales solo son visibles para el owner.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/"
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all"
+            >
+              Ir al Inicio
+            </Link>
+            <Link
+              href="/dashboard"
+              className="px-6 py-3 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/10 transition-all"
+            >
+              Ver Mi Portfolio
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}

@@ -3,6 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useAccount } from 'wagmi'
+import { useContractOwner } from '@/hooks/useSolarContract'
 import {
   LayoutDashboard,
   TrendingUp,
@@ -16,33 +18,45 @@ import {
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { address } = useAccount()
+  const { owner } = useContractOwner()
+
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
   const menuItems = [
     {
       name: 'Inicio',
       href: '/',
       icon: Home,
-      description: 'Proyectos disponibles'
+      description: 'Proyectos disponibles',
+      showAlways: true
     },
     {
       name: 'Mi Portfolio',
       href: '/dashboard',
       icon: LayoutDashboard,
-      description: 'Mis inversiones'
+      description: 'Mis inversiones',
+      showAlways: true
     },
     {
       name: 'Métricas',
       href: '/metrics',
       icon: BarChart3,
-      description: 'Estadísticas globales'
+      description: 'Estadísticas globales',
+      showAlways: false, // Solo para owner
+      ownerOnly: true
     },
     {
       name: 'Administración',
       href: '/admin',
       icon: Settings,
-      description: 'Panel de control'
+      description: 'Panel de control',
+      showAlways: true
     }
   ]
+
+  // Filtrar items según permisos
+  const visibleMenuItems = menuItems.filter(item => item.showAlways || (item.ownerOnly && isOwner))
 
   return (
     <>
@@ -95,7 +109,7 @@ export function Sidebar() {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const isActive = pathname === item.href
               const Icon = item.icon
 
@@ -105,14 +119,14 @@ export function Sidebar() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${isActive
-                      ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-md'
-                      : 'hover:bg-muted/10 border-2 border-transparent hover:border-muted/20'
+                    ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-md'
+                    : 'hover:bg-muted/10 border-2 border-transparent hover:border-muted/20'
                     }`}
                 >
                   <div
                     className={`p-2 rounded-lg transition-all ${isActive
-                        ? 'bg-gradient-to-br from-primary to-secondary shadow-lg'
-                        : 'bg-muted/20 group-hover:bg-muted/30'
+                      ? 'bg-gradient-to-br from-primary to-secondary shadow-lg'
+                      : 'bg-muted/20 group-hover:bg-muted/30'
                       }`}
                   >
                     <Icon
@@ -126,6 +140,9 @@ export function Sidebar() {
                         }`}
                     >
                       {item.name}
+                      {item.ownerOnly && (
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent">Owner</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>

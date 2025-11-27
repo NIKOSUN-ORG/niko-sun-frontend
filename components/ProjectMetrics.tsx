@@ -35,7 +35,7 @@ export function ProjectMetrics() {
             icon={<DollarSign className="w-6 h-6" />}
             label="Balance del Contrato"
             value={isLoadingBalance ? undefined : (contractBalance ? parseFloat(formatEther(contractBalance)).toFixed(4) : '0')}
-            unit="ETH"
+            unit="tSYS"
             gradient="from-secondary to-secondary-dark"
           />
           <MetricCard
@@ -168,7 +168,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
             <DollarSign className="w-4 h-4 text-secondary" />
             <p className="text-xs text-muted-foreground">Revenue Total</p>
           </div>
-          <p className="text-lg font-bold text-secondary">{parseFloat(formatEther(totalRevenue)).toFixed(4)} ETH</p>
+          <p className="text-lg font-bold text-secondary">{parseFloat(formatEther(totalRevenue)).toFixed(4)} tSYS</p>
         </div>
       </div>
 
@@ -178,7 +178,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
             <Coins className="w-4 h-4 text-accent" />
             <p className="text-xs text-muted-foreground">Precio Token</p>
           </div>
-          <p className="text-lg font-bold text-accent">{formatEther(priceWei)} ETH</p>
+          <p className="text-lg font-bold text-accent">{formatEther(priceWei)} tSYS</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/5 border border-muted/20 hover:bg-muted/10 transition-colors">
@@ -186,7 +186,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
             <DollarSign className="w-4 h-4 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">Ventas</p>
           </div>
-          <p className="text-lg font-bold text-foreground">{salesBalance ? parseFloat(formatEther(salesBalance)).toFixed(4) : '0'} ETH</p>
+          <p className="text-lg font-bold text-foreground">{salesBalance ? parseFloat(formatEther(salesBalance)).toFixed(4) : '0'} tSYS</p>
         </div>
       </div>
 
