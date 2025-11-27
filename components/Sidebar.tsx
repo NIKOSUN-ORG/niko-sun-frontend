@@ -1,9 +1,9 @@
 "use client"
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
-  Sun,
   LayoutDashboard,
   TrendingUp,
   Settings,
@@ -68,16 +68,21 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-card-bg border-r border-card-border z-40 transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 w-72 shadow-xl`}
+        className={`fixed top-0 left-0 h-full bg-card-bg border-r border-card-border z-40 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 w-72 shadow-xl`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-card-border">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg group-hover:shadow-xl transition-shadow">
-                <Sun className="w-7 h-7 text-white" />
+              <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
+                <Image
+                  src="/NikoSun_logo.png"
+                  alt="Niko Sun Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -99,30 +104,26 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${
-                    isActive
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${isActive
                       ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-md'
                       : 'hover:bg-muted/10 border-2 border-transparent hover:border-muted/20'
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`p-2 rounded-lg transition-all ${
-                      isActive
+                    className={`p-2 rounded-lg transition-all ${isActive
                         ? 'bg-gradient-to-br from-primary to-secondary shadow-lg'
                         : 'bg-muted/20 group-hover:bg-muted/30'
-                    }`}
+                      }`}
                   >
                     <Icon
-                      className={`w-5 h-5 ${
-                        isActive ? 'text-white' : 'text-muted group-hover:text-foreground'
-                      }`}
+                      className={`w-5 h-5 ${isActive ? 'text-white' : 'text-muted group-hover:text-foreground'
+                        }`}
                     />
                   </div>
                   <div className="flex-1">
                     <p
-                      className={`font-semibold ${
-                        isActive ? 'text-foreground' : 'text-muted group-hover:text-foreground'
-                      }`}
+                      className={`font-semibold ${isActive ? 'text-foreground' : 'text-muted group-hover:text-foreground'
+                        }`}
                     >
                       {item.name}
                     </p>

@@ -5,6 +5,7 @@ import { Providers } from "./provider"
 import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
+import { ToastProvider } from "@/components/Toast"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,18 +33,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="min-h-screen bg-background">
-            <Sidebar />
-            <div className="lg:pl-72">
-              <Header />
-              <main className="pt-20 pb-8 px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                  {children}
-                </div>
-              </main>
-              <Footer />
+          <ToastProvider>
+            <div className="min-h-screen bg-background">
+              <Sidebar />
+              <div className="lg:pl-72">
+                <Header />
+                <main className="pt-20 pb-8 px-6 lg:px-8">
+                  <div className="max-w-7xl mx-auto">
+                    {children}
+                  </div>
+                </main>
+                <Footer />
+              </div>
             </div>
-          </div>
+          </ToastProvider>
         </Providers>
       </body>
     </html>

@@ -1,13 +1,23 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
+import { parseEther, formatEther } from 'viem'
 import {
   useCreateProject,
-  useUpdateMetrics,
-  useRecordPayout,
-  useWithdraw,
-  useSetProjectStatus
+  useUpdateEnergy,
+  useDepositRevenue,
+  useWithdrawSales,
+  useSetProjectStatus,
+  useContractOwner,
+  usePauseContract,
+  useContractPaused,
+  useContractBalance,
+  useSalesBalance,
+  useProjectData,
+  useIsProjectCreator,
+  useTransferProjectOwnership,
 } from '@/hooks/useSolarContract'
+import { useToast } from '@/components/Toast'
 import {
   Settings,
   Plus,
@@ -17,29 +27,39 @@ import {
   Loader2,
   Shield,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Pause,
+  Play,
+  Send,
+  User
 } from 'lucide-react'
 
 export function AdminPanel() {
   const { address, isConnected } = useAccount()
-  const [activeTab, setActiveTab] = useState<'create' | 'update' | 'withdraw'>('create')
+  const { owner } = useContractOwner()
+  const { isPaused } = useContractPaused()
+  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'revenue' | 'owner'>('create')
+
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
   if (!isConnected) {
     return (
-      <div className="rounded-2xl border-2 border-card-border bg-card-bg p-8 shadow-lg text-center card-gradient">
-        <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+      <div className="rounded-2xl border-2 border-card-border bg-card-bg p-8 shadow-lg text-center card-gradient animate-fade-in">
+        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+          <Shield className="w-10 h-10 text-muted-foreground" />
+        </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
           Panel de Administración
         </h3>
-        <p className="text-muted-foreground">
-          Conecta tu wallet para acceder al panel de administración
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Conecta tu wallet para acceder al panel de administración y gestionar tus proyectos solares
         </p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-2xl border-2 border-card-border bg-card-bg shadow-lg overflow-hidden card-gradient">
+    <div className="rounded-2xl border-2 border-card-border bg-card-bg shadow-lg overflow-hidden card-gradient animate-fade-in">
       <div className="bg-gradient-to-r from-primary to-secondary p-6">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-full bg-white/20">
@@ -49,83 +69,151 @@ export function AdminPanel() {
             <h3 className="text-2xl font-bold text-white">Panel de Administración</h3>
             <p className="text-sm text-white/80">
               {address?.slice(0, 6)}...{address?.slice(-4)}
+              {isOwner && <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">Owner</span>}
             </p>
           </div>
         </div>
+        {isPaused && (
+          <div className="mt-3 p-2 bg-red-500/20 rounded-lg text-white text-sm flex items-center gap-2">
+            <Pause className="w-4 h-4" />
+            Contrato pausado - Las compras están deshabilitadas
+          </div>
+        )}
       </div>
 
       <div className="border-b border-border">
-        <div className="flex">
+        <div className="flex flex-wrap">
           <button
             onClick={() => setActiveTab('create')}
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === 'create'
-                ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:bg-muted/5'
-            }`}
+            className={`flex-1 px-4 py-4 font-semibold transition-colors ${activeTab === 'create'
+              ? 'bg-primary/10 text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-muted/5'
+              }`}
           >
             <Plus className="w-5 h-5 inline mr-2" />
             Crear Proyecto
           </button>
           <button
-            onClick={() => setActiveTab('update')}
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === 'update'
-                ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:bg-muted/5'
-            }`}
+            onClick={() => setActiveTab('manage')}
+            className={`flex-1 px-4 py-4 font-semibold transition-colors ${activeTab === 'manage'
+              ? 'bg-primary/10 text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-muted/5'
+              }`}
           >
             <Zap className="w-5 h-5 inline mr-2" />
-            Actualizar Métricas
+            Gestionar Proyecto
           </button>
           <button
-            onClick={() => setActiveTab('withdraw')}
-            className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-              activeTab === 'withdraw'
+            onClick={() => setActiveTab('revenue')}
+            className={`flex-1 px-4 py-4 font-semibold transition-colors ${activeTab === 'revenue'
+              ? 'bg-primary/10 text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-muted/5'
+              }`}
+          >
+            <DollarSign className="w-5 h-5 inline mr-2" />
+            Revenue
+          </button>
+          {isOwner && (
+            <button
+              onClick={() => setActiveTab('owner')}
+              className={`flex-1 px-4 py-4 font-semibold transition-colors ${activeTab === 'owner'
                 ? 'bg-primary/10 text-primary border-b-2 border-primary'
                 : 'text-muted-foreground hover:bg-muted/5'
-            }`}
-          >
-            <Download className="w-5 h-5 inline mr-2" />
-            Retirar Fondos
-          </button>
+                }`}
+            >
+              <Shield className="w-5 h-5 inline mr-2" />
+              Owner
+            </button>
+          )}
         </div>
       </div>
 
       <div className="p-6">
         {activeTab === 'create' && <CreateProjectForm />}
-        {activeTab === 'update' && <UpdateMetricsForm />}
-        {activeTab === 'withdraw' && <WithdrawForm />}
+        {activeTab === 'manage' && <ManageProjectForm />}
+        {activeTab === 'revenue' && <RevenueForm />}
+        {activeTab === 'owner' && isOwner && <OwnerPanel />}
       </div>
     </div>
   )
 }
 
 function CreateProjectForm() {
+  const [name, setName] = useState('')
   const [totalSupply, setTotalSupply] = useState('')
   const [price, setPrice] = useState('')
+  const [minPurchase, setMinPurchase] = useState('1')
   const { createProject, isPending, isSuccess, error } = useCreateProject()
+  const { showToast } = useToast()
+
+  useEffect(() => {
+    if (isSuccess) {
+      showToast(`¡Proyecto "${name}" creado exitosamente!`, 'success')
+      setName('')
+      setTotalSupply('')
+      setPrice('')
+      setMinPurchase('1')
+    }
+  }, [isSuccess, name, showToast])
+
+  useEffect(() => {
+    if (error) {
+      showToast(`Error al crear proyecto: ${error.message}`, 'error')
+    }
+  }, [error, showToast])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!totalSupply || !price) return
-    createProject(Number(totalSupply), price)
+    if (!name || !totalSupply || !price || !minPurchase) return
+    const priceWei = parseEther(price)
+    createProject(name, Number(totalSupply), priceWei, Number(minPurchase))
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          Suministro Total de Tokens
+          Nombre del Proyecto
         </label>
         <input
-          type="number"
-          value={totalSupply}
-          onChange={(e) => setTotalSupply(e.target.value)}
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-          placeholder="1000"
+          placeholder="Panel Solar Norte"
           required
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Suministro Total de Tokens
+          </label>
+          <input
+            type="number"
+            value={totalSupply}
+            onChange={(e) => setTotalSupply(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+            placeholder="1000"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Compra Mínima (tokens)
+          </label>
+          <input
+            type="number"
+            value={minPurchase}
+            onChange={(e) => setMinPurchase(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+            placeholder="1"
+            min="1"
+            required
+          />
+        </div>
       </div>
 
       <div>
@@ -181,182 +269,489 @@ function CreateProjectForm() {
   )
 }
 
-function UpdateMetricsForm() {
+function ManageProjectForm() {
+  const { address } = useAccount()
   const [projectId, setProjectId] = useState('')
   const [energyDelta, setEnergyDelta] = useState('')
-  const [payoutAmount, setPayoutAmount] = useState('')
-  const { updateMetrics, isPending: isUpdating, isSuccess: updateSuccess } = useUpdateMetrics()
-  const { recordPayout, isPending: isRecording, isSuccess: payoutSuccess } = useRecordPayout()
-  const { setProjectStatus, isPending: isToggling } = useSetProjectStatus()
+  const [newCreator, setNewCreator] = useState('')
 
-  const handleUpdateMetrics = (e: React.FormEvent) => {
+  const { updateEnergy, isPending: isUpdating, isSuccess: updateSuccess, error: updateError } = useUpdateEnergy()
+  const { setProjectStatus, isPending: isToggling, isSuccess: toggleSuccess, error: toggleError } = useSetProjectStatus()
+  const { transferProjectOwnership, isPending: isTransferring, isSuccess: transferSuccess, error: transferError } = useTransferProjectOwnership()
+
+  const { project } = useProjectData(projectId ? Number(projectId) : undefined)
+  const { isCreator } = useIsProjectCreator(projectId ? Number(projectId) : 0, address)
+  const { owner } = useContractOwner()
+
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
+  const canManage = isCreator || isOwner
+
+  const handleUpdateEnergy = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectId || !energyDelta) return
-    updateMetrics(Number(projectId), Number(energyDelta))
+    updateEnergy(Number(projectId), Number(energyDelta))
   }
 
-  const handleRecordPayout = (e: React.FormEvent) => {
+  const handleToggleStatus = (active: boolean) => {
+    if (!projectId) return
+    setProjectStatus(Number(projectId), active)
+  }
+
+  const handleTransferOwnership = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectId || !payoutAmount) return
-    recordPayout(Number(projectId), Number(payoutAmount))
+    if (!projectId || !newCreator) return
+    transferProjectOwnership(Number(projectId), newCreator as `0x${string}`)
   }
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleUpdateMetrics} className="space-y-4">
-        <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
-          <Zap className="w-5 h-5 text-primary" />
-          Actualizar Energía Generada
-        </h4>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              ID del Proyecto
-            </label>
-            <input
-              type="number"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-              placeholder="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              Energía (kWh)
-            </label>
-            <input
-              type="number"
-              value={energyDelta}
-              onChange={(e) => setEnergyDelta(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-              placeholder="100"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isUpdating}
-          className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isUpdating ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Actualizando...</span>
-            </>
-          ) : (
-            <>
-              <Zap className="w-5 h-5" />
-              <span>Actualizar Métricas</span>
-            </>
-          )}
-        </button>
-
-        {updateSuccess && (
-          <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-            <p className="text-sm text-primary font-medium text-center">
-              ¡Métricas actualizadas!
-            </p>
+      <div>
+        <label className="block text-sm font-semibold text-foreground mb-2">
+          ID del Proyecto
+        </label>
+        <input
+          type="number"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+          className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+          placeholder="1"
+          min="1"
+        />
+        {projectId && project && (
+          <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
+            <p><span className="font-semibold">Estado:</span> {project.active ? '✅ Activo' : '❌ Inactivo'}</p>
+            <p><span className="font-semibold">Creador:</span> {project.creator.slice(0, 8)}...{project.creator.slice(-6)}</p>
+            <p><span className="font-semibold">Permisos:</span> {canManage ? '✅ Puedes gestionar' : '❌ Sin permisos'}</p>
           </div>
         )}
-      </form>
+      </div>
 
-      <div className="border-t border-border pt-6">
-        <form onSubmit={handleRecordPayout} className="space-y-4">
+      {canManage && projectId && (
+        <>
+          {/* Actualizar Energía */}
+          <form onSubmit={handleUpdateEnergy} className="space-y-4 border-t border-border pt-6">
+            <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+              <Zap className="w-5 h-5 text-primary" />
+              Actualizar Energía Generada
+            </h4>
+
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">
+                Energía (kWh)
+              </label>
+              <input
+                type="number"
+                value={energyDelta}
+                onChange={(e) => setEnergyDelta(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                placeholder="100"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Actualizando...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5" />
+                  <span>Actualizar Energía</span>
+                </>
+              )}
+            </button>
+
+            {updateSuccess && (
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                <p className="text-sm text-primary font-medium text-center">
+                  ¡Energía actualizada!
+                </p>
+              </div>
+            )}
+            {updateError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                <p className="text-sm text-red-500 font-medium text-center">
+                  Error: {updateError.message}
+                </p>
+              </div>
+            )}
+          </form>
+
+          {/* Cambiar Estado */}
+          {isCreator && (
+            <div className="space-y-4 border-t border-border pt-6">
+              <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+                <Settings className="w-5 h-5 text-secondary" />
+                Estado del Proyecto
+              </h4>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleToggleStatus(true)}
+                  disabled={isToggling || project?.active}
+                  className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
+                  Activar
+                </button>
+                <button
+                  onClick={() => handleToggleStatus(false)}
+                  disabled={isToggling || !project?.active}
+                  className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Pause className="w-5 h-5" />
+                  Desactivar
+                </button>
+              </div>
+
+              {toggleSuccess && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <p className="text-sm text-primary font-medium text-center">
+                    ¡Estado actualizado!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Transferir Ownership del Proyecto */}
+          {isCreator && (
+            <form onSubmit={handleTransferOwnership} className="space-y-4 border-t border-border pt-6">
+              <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-accent" />
+                Transferir Propiedad del Proyecto
+              </h4>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  Nueva Dirección del Creador
+                </label>
+                <input
+                  type="text"
+                  value={newCreator}
+                  onChange={(e) => setNewCreator(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                  placeholder="0x..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isTransferring}
+                className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-accent to-secondary text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isTransferring ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Transfiriendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span>Transferir Propiedad</span>
+                  </>
+                )}
+              </button>
+
+              {transferSuccess && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <p className="text-sm text-primary font-medium text-center">
+                    ¡Propiedad transferida!
+                  </p>
+                </div>
+              )}
+              {transferError && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm text-red-500 font-medium text-center">
+                    Error: {transferError.message}
+                  </p>
+                </div>
+              )}
+            </form>
+          )}
+        </>
+      )}
+
+      {!canManage && projectId && (
+        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+          <p className="text-sm text-yellow-600 font-medium text-center">
+            No tienes permisos para gestionar este proyecto. Solo el creador del proyecto o el owner del contrato pueden hacerlo.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RevenueForm() {
+  const { address } = useAccount()
+  const [projectId, setProjectId] = useState('')
+  const [revenueAmount, setRevenueAmount] = useState('')
+  const [energyKwh, setEnergyKwh] = useState('0')
+  const [withdrawAmount, setWithdrawAmount] = useState('')
+  const [recipient, setRecipient] = useState('')
+
+  const { depositRevenue, isPending: isDepositing, isSuccess: depositSuccess, error: depositError } = useDepositRevenue()
+  const { withdrawSales, isPending: isWithdrawing, isSuccess: withdrawSuccess, error: withdrawError } = useWithdrawSales()
+
+  const { project } = useProjectData(projectId ? Number(projectId) : undefined)
+  const { salesBalance } = useSalesBalance(projectId ? Number(projectId) : 0)
+  const { isCreator } = useIsProjectCreator(projectId ? Number(projectId) : 0, address)
+  const { owner } = useContractOwner()
+
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
+  const canDeposit = isCreator || isOwner
+  const canWithdraw = isCreator
+
+  const handleDepositRevenue = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!projectId || !revenueAmount) return
+    const amountWei = parseEther(revenueAmount)
+    depositRevenue(Number(projectId), Number(energyKwh), amountWei)
+  }
+
+  const handleWithdrawSales = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!projectId || !withdrawAmount || !recipient) return
+    const amountWei = parseEther(withdrawAmount)
+    withdrawSales(Number(projectId), recipient as `0x${string}`, amountWei)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-semibold text-foreground mb-2">
+          ID del Proyecto
+        </label>
+        <input
+          type="number"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+          className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+          placeholder="1"
+          min="1"
+        />
+        {projectId && project && (
+          <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
+            <p><span className="font-semibold">Revenue Total:</span> {formatEther(project.totalRevenue)} ETH</p>
+            <p><span className="font-semibold">Balance de Ventas:</span> {salesBalance ? formatEther(salesBalance) : '0'} ETH</p>
+            <p><span className="font-semibold">Energía Total:</span> {Number(project.totalEnergyKwh)} kWh</p>
+          </div>
+        )}
+      </div>
+
+      {/* Depositar Revenue */}
+      {canDeposit && projectId && (
+        <form onSubmit={handleDepositRevenue} className="space-y-4 border-t border-border pt-6">
           <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-secondary" />
-            Registrar Pago
+            <DollarSign className="w-5 h-5 text-primary" />
+            Depositar Revenue (distribuye a holders)
           </h4>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">
+                Monto (ETH)
+              </label>
+              <input
+                type="text"
+                value={revenueAmount}
+                onChange={(e) => setRevenueAmount(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                placeholder="0.1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">
+                Energía Generada (kWh)
+              </label>
+              <input
+                type="number"
+                value={energyKwh}
+                onChange={(e) => setEnergyKwh(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isDepositing}
+            className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isDepositing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Depositando...</span>
+              </>
+            ) : (
+              <>
+                <DollarSign className="w-5 h-5" />
+                <span>Depositar Revenue</span>
+              </>
+            )}
+          </button>
+
+          {depositSuccess && (
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+              <p className="text-sm text-primary font-medium text-center">
+                ¡Revenue depositado! Los holders pueden reclamar sus recompensas.
+              </p>
+            </div>
+          )}
+          {depositError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-sm text-red-500 font-medium text-center">
+                Error: {depositError.message}
+              </p>
+            </div>
+          )}
+        </form>
+      )}
+
+      {/* Retirar Ventas */}
+      {canWithdraw && projectId && (
+        <form onSubmit={handleWithdrawSales} className="space-y-4 border-t border-border pt-6">
+          <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+            <Download className="w-5 h-5 text-secondary" />
+            Retirar Balance de Ventas
+          </h4>
+          <p className="text-sm text-muted-foreground">
+            Solo el creador del proyecto puede retirar el balance de las ventas de tokens.
+          </p>
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">
-              Monto Distribuido (USD)
+              Dirección del Destinatario
             </label>
             <input
-              type="number"
-              value={payoutAmount}
-              onChange={(e) => setPayoutAmount(e.target.value)}
+              type="text"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-              placeholder="1000"
+              placeholder="0x..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-2">
+              Monto a Retirar (ETH)
+            </label>
+            <input
+              type="text"
+              value={withdrawAmount}
+              onChange={(e) => setWithdrawAmount(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+              placeholder="0.5"
             />
           </div>
 
           <button
             type="submit"
-            disabled={isRecording}
+            disabled={isWithdrawing}
             className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-secondary to-secondary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {isRecording ? (
+            {isWithdrawing ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Registrando...</span>
+                <span>Retirando...</span>
               </>
             ) : (
               <>
-                <DollarSign className="w-5 h-5" />
-                <span>Registrar Pago</span>
+                <Download className="w-5 h-5" />
+                <span>Retirar Ventas</span>
               </>
             )}
           </button>
 
-          {payoutSuccess && (
+          {withdrawSuccess && (
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
               <p className="text-sm text-secondary font-medium text-center">
-                ¡Pago registrado exitosamente!
+                ¡Fondos retirados exitosamente!
+              </p>
+            </div>
+          )}
+          {withdrawError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+              <p className="text-sm text-red-500 font-medium text-center">
+                Error: {withdrawError.message}
               </p>
             </div>
           )}
         </form>
-      </div>
+      )}
+
+      {!canDeposit && !canWithdraw && projectId && (
+        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+          <p className="text-sm text-yellow-600 font-medium text-center">
+            No tienes permisos para gestionar el revenue de este proyecto.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
 
-function WithdrawForm() {
-  const { withdraw, isPending, isSuccess, error } = useWithdraw()
-
-  const handleWithdraw = () => {
-    withdraw()
-  }
+function OwnerPanel() {
+  const { pause, unpause, isPending, isSuccess, error } = usePauseContract()
+  const { isPaused } = useContractPaused()
+  const { balance } = useContractBalance()
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="p-6 rounded-lg bg-gradient-to-br from-secondary/10 to-primary/10 border border-secondary/30">
         <h4 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
-          <Download className="w-5 h-5 text-secondary" />
-          Retirar Fondos del Contrato
+          <Shield className="w-5 h-5 text-secondary" />
+          Control del Contrato (Solo Owner)
         </h4>
-        <p className="text-sm text-muted-foreground mb-4">
-          Esta acción retirará todos los fondos del contrato a tu wallet.
-          Solo los administradores pueden realizar esta acción.
-        </p>
 
-        <button
-          onClick={handleWithdraw}
-          disabled={isPending}
-          className="w-full px-6 py-4 rounded-lg bg-gradient-to-r from-secondary to-secondary-dark text-white font-bold text-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isPending ? (
-            <>
+        <div className="mb-4 p-3 rounded-lg bg-muted/10 text-sm">
+          <p><span className="font-semibold">Balance Total del Contrato:</span> {balance ? formatEther(balance) : '0'} ETH</p>
+          <p><span className="font-semibold">Estado:</span> {isPaused ? '⏸️ Pausado' : '▶️ Activo'}</p>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => pause()}
+            disabled={isPending || isPaused}
+            className="flex-1 px-6 py-4 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isPending ? (
               <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Retirando...</span>
-            </>
-          ) : (
-            <>
-              <Download className="w-6 h-6" />
-              <span>Retirar Fondos</span>
-            </>
-          )}
-        </button>
+            ) : (
+              <>
+                <Pause className="w-6 h-6" />
+                <span>Pausar Contrato</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => unpause()}
+            disabled={isPending || !isPaused}
+            className="flex-1 px-6 py-4 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isPending ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <>
+                <Play className="w-6 h-6" />
+                <span>Reanudar Contrato</span>
+              </>
+            )}
+          </button>
+        </div>
 
         {isSuccess && (
           <div className="mt-4 p-4 rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-primary" />
             <p className="text-sm text-primary font-medium">
-              ¡Fondos retirados exitosamente!
+              ¡Operación completada!
             </p>
           </div>
         )}

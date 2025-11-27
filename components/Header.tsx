@@ -1,6 +1,6 @@
 "use client"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { Sun } from "lucide-react"
+import Image from "next/image"
 
 export function Header() {
   return (
@@ -9,9 +9,13 @@ export function Header() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo for mobile */}
           <div className="flex items-center gap-3 lg:hidden">
-            <div className="p-2 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg">
-              <Sun className="w-6 h-6 text-white" />
-            </div>
+            <Image
+              src="/NikoSun_logo.png"
+              alt="Niko Sun Logo"
+              width={40}
+              height={40}
+              className="rounded-full shadow-lg"
+            />
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Niko Sun
             </span>

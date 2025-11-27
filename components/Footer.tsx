@@ -1,4 +1,4 @@
-import { Sun } from "lucide-react"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -6,9 +6,13 @@ export function Footer() {
       <div className="container mx-auto px-6">
         <div className="flex flex-col items-center justify-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-gradient-to-br from-primary to-secondary shadow-lg">
-              <Sun className="w-6 h-6 text-white" />
-            </div>
+            <Image
+              src="/NikoSun_logo.png"
+              alt="Niko Sun Logo"
+              width={40}
+              height={40}
+              className="rounded-full shadow-lg"
+            />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Niko Sun
             </span>

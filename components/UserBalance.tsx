@@ -1,75 +1,212 @@
 "use client"
+import { useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import { useNextProjectId, useUserBalance } from '@/hooks/useSolarContract'
-import { Wallet, TrendingUp } from 'lucide-react'
+import { formatEther } from 'viem'
+import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple } from '@/hooks/useSolarContract'
+import { useToast } from '@/components/Toast'
+import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight } from 'lucide-react'
 
 export function UserBalance() {
   const { address, isConnected } = useAccount()
   const { nextProjectId } = useNextProjectId()
+  const { showToast } = useToast()
+
+  // Los IDs de proyectos empiezan en 1
+  const projectIds = Array.from({ length: nextProjectId - 1 }, (_, i) => i + 1)
+  const { positions, isLoading: isLoadingPortfolio } = useInvestorPortfolio(address, projectIds)
+  const { claimMultiple, isPending: isClaiming, isSuccess: claimSuccess, error: claimError } = useClaimMultiple()
+
+  // Toast notifications
+  useEffect(() => {
+    if (claimSuccess) {
+      showToast('¡Todas las recompensas reclamadas exitosamente!', 'success')
+    }
+  }, [claimSuccess, showToast])
+
+  useEffect(() => {
+    if (claimError) {
+      showToast('Error al reclamar las recompensas', 'error')
+    }
+  }, [claimError, showToast])
 
   if (!isConnected || !address) {
     return (
-      <div className="rounded-2xl border-2 border-card-border bg-card-bg p-8 shadow-lg text-center card-gradient">
-        <Wallet className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+      <div className="rounded-2xl border-2 border-card-border bg-card-bg p-8 shadow-lg text-center card-gradient animate-fade-in">
+        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+          <Wallet className="w-10 h-10 text-muted-foreground" />
+        </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
           Conecta tu Wallet
         </h3>
-        <p className="text-muted-foreground">
-          Para ver tus tokens, primero conecta tu wallet
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Para ver tus tokens e inversiones, primero conecta tu wallet haciendo clic en el botón de arriba
         </p>
       </div>
     )
   }
 
-  const projectIds = Array.from({ length: nextProjectId }, (_, i) => i)
+  // Calcular total reclamable
+  const totalClaimable = positions?.reduce((acc, pos) => acc + pos.claimableAmount, BigInt(0)) || BigInt(0)
+  const projectsWithClaimable = positions?.filter(pos => pos.claimableAmount > BigInt(0)).map(pos => Number(pos.projectId)) || []
+  const hasClaimable = totalClaimable > BigInt(0)
+
+  const handleClaimAll = () => {
+    if (projectsWithClaimable.length > 0) {
+      claimMultiple(projectsWithClaimable)
+    }
+  }
 
   return (
-    <div className="rounded-2xl border-2 border-card-border bg-card-bg p-6 shadow-lg card-gradient">
+    <div className="rounded-2xl border-2 border-card-border bg-card-bg p-6 shadow-lg card-gradient animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 rounded-full bg-gradient-to-br from-primary to-secondary">
           <TrendingUp className="w-6 h-6 text-white" />
         </div>
-        <div>
-          <h3 className="text-2xl font-bold text-foreground">Mis Tokens</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold text-foreground">Mi Portafolio</h3>
+          <p className="text-sm text-muted-foreground font-mono">
             {address.slice(0, 6)}...{address.slice(-4)}
           </p>
         </div>
+        {positions && positions.filter(p => p.tokenBalance > BigInt(0)).length > 0 && (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+            <Coins className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary">
+              {positions.filter(p => p.tokenBalance > BigInt(0)).length} proyecto(s)
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Sección de reclamar todas las recompensas */}
+      {hasClaimable && (
+        <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <Gift className="w-8 h-8 text-green-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Recompensas Disponibles</p>
+                <p className="text-2xl font-bold text-green-500">{formatEther(totalClaimable)} ETH</p>
+                <p className="text-xs text-muted-foreground">En {projectsWithClaimable.length} proyecto(s)</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClaimAll}
+              disabled={isClaiming}
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isClaiming ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Reclamando...</span>
+                </>
+              ) : (
+                <>
+                  <Gift className="w-5 h-5" />
+                  <span>Reclamar Todo</span>
+                </>
+              )}
+            </button>
+          </div>
+          {claimSuccess && (
+            <p className="mt-3 text-sm text-green-500 text-center">¡Todas las recompensas reclamadas exitosamente!</p>
+          )}
+        </div>
+      )}
+
       <div className="space-y-3">
-        {projectIds.map((projectId) => (
-          <BalanceItem key={projectId} address={address} projectId={projectId} />
-        ))}
-        {projectIds.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
-            No hay proyectos disponibles
-          </p>
+        {isLoadingPortfolio ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 rounded-lg border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full skeleton-shimmer" />
+                  <div className="flex-1">
+                    <div className="h-4 w-32 rounded skeleton-shimmer mb-2" />
+                    <div className="h-3 w-24 rounded skeleton-shimmer" />
+                  </div>
+                  <div className="text-right">
+                    <div className="h-6 w-16 rounded skeleton-shimmer mb-1" />
+                    <div className="h-3 w-12 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : positions && positions.length > 0 ? (
+          positions.filter(pos => pos.tokenBalance > BigInt(0) || pos.claimableAmount > BigInt(0) || pos.totalClaimed > BigInt(0)).map((position, index) => (
+            <PortfolioItem key={Number(position.projectId)} position={position} index={index} />
+          ))
+        ) : projectIds.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/10 flex items-center justify-center">
+              <Coins className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-foreground mb-2">No hay proyectos aún</p>
+            <p className="text-muted-foreground">Sé el primero en crear un proyecto solar</p>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/10 flex items-center justify-center">
+              <Wallet className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-foreground mb-2">Sin inversiones</p>
+            <p className="text-muted-foreground">Explora los proyectos disponibles y comienza a invertir</p>
+          </div>
         )}
       </div>
     </div>
   )
 }
 
-function BalanceItem({ address, projectId }: { address: `0x${string}`, projectId: number }) {
-  const { balance } = useUserBalance(address, projectId)
+interface InvestorPosition {
+  projectId: bigint
+  tokenBalance: bigint
+  claimableAmount: bigint
+  totalClaimed: bigint
+}
 
-  if (balance === 0) return null
+function PortfolioItem({ position, index }: { position: InvestorPosition, index: number }) {
+  const { projectId, tokenBalance, claimableAmount, totalClaimed } = position
+  const hasClaimable = claimableAmount > BigInt(0)
 
   return (
-    <div className="flex justify-between items-center p-4 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 hover:border-primary/40 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-          <span className="text-white font-bold text-sm">#{projectId}</span>
+    <div
+      className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 hover:border-primary/40 hover:shadow-md transition-all duration-300 animate-fade-in hover-lift"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+            <span className="text-white font-bold">#{Number(projectId)}</span>
+          </div>
+          <div>
+            <p className="font-semibold text-foreground flex items-center gap-2">
+              Proyecto Solar #{Number(projectId)}
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+            </p>
+            <p className="text-xs text-muted-foreground">Token de energía solar</p>
+          </div>
         </div>
-        <div>
-          <p className="font-semibold text-foreground">Proyecto Solar #{projectId}</p>
-          <p className="text-xs text-muted-foreground">Token de energía solar</p>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-primary">{Number(tokenBalance).toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">tokens</p>
         </div>
       </div>
-      <div className="text-right">
-        <p className="text-2xl font-bold text-primary">{balance}</p>
-        <p className="text-xs text-muted-foreground">tokens</p>
+
+      <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-4">
+        <div className="p-2 rounded-lg bg-background/50">
+          <p className="text-xs text-muted-foreground">Por Reclamar</p>
+          <p className={`text-sm font-bold ${hasClaimable ? 'text-green-500' : 'text-muted-foreground'}`}>
+            {parseFloat(formatEther(claimableAmount)).toFixed(6)} ETH
+          </p>
+        </div>
+        <div className="p-2 rounded-lg bg-background/50">
+          <p className="text-xs text-muted-foreground">Total Reclamado</p>
+          <p className="text-sm font-bold text-secondary">
+            {parseFloat(formatEther(totalClaimed)).toFixed(6)} ETH
+          </p>
+        </div>
       </div>
     </div>
   )

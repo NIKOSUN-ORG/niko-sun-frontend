@@ -1,13 +1,21 @@
 import { ProjectList } from "@/components/ProjectList"
 import { Sun, Zap, TrendingUp, Sparkles } from "lucide-react"
+import Image from "next/image"
 
 export default function Home() {
   return (
     <div className="space-y-16">
       {/* Hero Section */}
       <section className="py-12 text-center">
-        <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary to-secondary shadow-xl mb-6 animate-pulse">
-          <Sun className="w-16 h-16 text-white" />
+        <div className="inline-flex items-center justify-center rounded-full shadow-xl mb-6 overflow-hidden">
+          <Image
+            src="/NikoSun_logo.png"
+            alt="Niko Sun Logo"
+            width={120}
+            height={120}
+            className="animate-pulse"
+            priority
+          />
         </div>
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
           Niko Sun
