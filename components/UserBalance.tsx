@@ -2,9 +2,9 @@
 import { useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
-import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple } from '@/hooks/useSolarContract'
+import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple, useProjectData } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
-import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight } from 'lucide-react'
+import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight, Zap } from 'lucide-react'
 
 export function UserBalance() {
   const { address, isConnected } = useAccount()
@@ -168,7 +168,17 @@ interface InvestorPosition {
 
 function PortfolioItem({ position, index }: { position: InvestorPosition, index: number }) {
   const { projectId, tokenBalance, claimableAmount, totalClaimed } = position
+  const { project, metadata, isLoading } = useProjectData(Number(projectId))
   const hasClaimable = claimableAmount > BigInt(0)
+
+  const projectName = metadata?.name || `Proyecto Solar #${Number(projectId)}`
+  const totalEnergyKwh = project?.totalEnergyKwh !== undefined ? Number(project.totalEnergyKwh) : 0
+  const totalSupply = project?.totalSupply !== undefined ? Number(project.totalSupply) : 0
+
+  // Calcular la energía proporcional del usuario según sus tokens
+  const userEnergyShare = totalSupply > 0 && totalEnergyKwh > 0
+    ? (Number(tokenBalance) / totalSupply) * totalEnergyKwh
+    : 0
 
   return (
     <div
@@ -182,7 +192,7 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
           </div>
           <div>
             <p className="font-semibold text-foreground flex items-center gap-2">
-              Proyecto Solar #{Number(projectId)}
+              {projectName}
               <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
             </p>
             <p className="text-xs text-muted-foreground">Token de energía solar</p>
@@ -194,7 +204,16 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-4">
+      <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-3 gap-3">
+        <div className="p-2 rounded-lg bg-background/50">
+          <div className="flex items-center gap-1 mb-1">
+            <Zap className="w-3 h-3 text-accent" />
+            <p className="text-xs text-muted-foreground">Mi Energía</p>
+          </div>
+          <p className="text-sm font-bold text-accent">
+            {userEnergyShare.toLocaleString(undefined, { maximumFractionDigits: 2 })} kWh
+          </p>
+        </div>
         <div className="p-2 rounded-lg bg-background/50">
           <p className="text-xs text-muted-foreground">Por Reclamar</p>
           <p className={`text-sm font-bold ${hasClaimable ? 'text-green-500' : 'text-muted-foreground'}`}>
@@ -202,12 +221,18 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
           </p>
         </div>
         <div className="p-2 rounded-lg bg-background/50">
-          <p className="text-xs text-muted-foreground">Total Reclamado</p>
+          <p className="text-xs text-muted-foreground">Reclamado</p>
           <p className="text-sm font-bold text-secondary">
             {parseFloat(formatEther(totalClaimed)).toFixed(6)} tSYS
           </p>
         </div>
       </div>
+
+      {totalEnergyKwh > 0 && (
+        <div className="mt-2 text-xs text-muted-foreground text-center">
+          Energía total del proyecto: {totalEnergyKwh.toLocaleString()} kWh
+        </div>
+      )}
     </div>
   )
 }

@@ -1,10 +1,11 @@
 "use client"
 import { UserBalance } from "@/components/UserBalance"
-import { TrendingUp, Wallet, ArrowRight, Coins, Zap, FolderKanban } from "lucide-react"
-import { useAccount } from 'wagmi'
+import { TrendingUp, Wallet, ArrowRight, Coins, Zap, FolderKanban, Sun } from "lucide-react"
+import { useAccount, useReadContracts } from 'wagmi'
 import { useNextProjectId, useInvestorPortfolio } from '@/hooks/useSolarContract'
 import { formatEther } from 'viem'
 import Link from 'next/link'
+import { SOLAR_TOKEN_ABI, SOLAR_TOKEN_ADDRESS } from '@/types/Abi'
 
 export default function DashboardPage() {
   const { address, isConnected } = useAccount()
@@ -14,11 +15,45 @@ export default function DashboardPage() {
   const projectIds = Array.from({ length: nextProjectId - 1 }, (_, i) => i + 1)
   const { positions } = useInvestorPortfolio(address, projectIds)
 
+  // Filtrar posiciones con tokens
+  const positionsWithTokens = positions?.filter(pos => pos.tokenBalance > BigInt(0)) || []
+
+  // Obtener datos de proyectos para calcular energía
+  const projectContracts = positionsWithTokens.map(pos => ({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getProject',
+    args: [BigInt(pos.projectId)]
+  }))
+
+  const { data: projectsData } = useReadContracts({
+    contracts: projectContracts
+  })
+
   // Calcular estadísticas
   const totalTokens = positions?.reduce((acc, pos) => acc + Number(pos.tokenBalance), 0) || 0
   const totalClaimable = positions?.reduce((acc, pos) => acc + pos.claimableAmount, BigInt(0)) || BigInt(0)
   const totalClaimed = positions?.reduce((acc, pos) => acc + pos.totalClaimed, BigInt(0)) || BigInt(0)
-  const projectsWithTokens = positions?.filter(pos => pos.tokenBalance > BigInt(0)).length || 0
+  const projectsWithTokens = positionsWithTokens.length
+
+  // Calcular energía total proporcional
+  const totalEnergy = positionsWithTokens.reduce((sum, pos, index) => {
+    const projectResult = projectsData?.[index]
+    if (projectResult?.status !== 'success' || !projectResult.result) return sum
+
+    // getProject retorna [project, meta, salesBalance, availableSupply]
+    const resultArray = projectResult.result as readonly [
+      { totalSupply: bigint; totalEnergyKwh: bigint },
+      { name: string },
+      bigint,
+      bigint
+    ]
+    const project = resultArray[0]
+
+    if (!project || project.totalSupply === BigInt(0)) return sum
+    const ownershipRatio = Number(pos.tokenBalance) / Number(project.totalSupply)
+    return sum + Number(project.totalEnergyKwh) * ownershipRatio
+  }, 0)
 
   return (
     <div className="space-y-8">
@@ -41,7 +76,7 @@ export default function DashboardPage() {
 
       {/* Quick Stats - Solo si está conectado */}
       {isConnected && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <QuickStatCard
             icon={<Coins className="w-5 h-5" />}
             label="Mis Tokens"
@@ -53,6 +88,12 @@ export default function DashboardPage() {
             label="Proyectos"
             value={projectsWithTokens.toString()}
             color="text-secondary"
+          />
+          <QuickStatCard
+            icon={<Sun className="w-5 h-5" />}
+            label="Mi Energía"
+            value={`${totalEnergy.toFixed(1)} kWh`}
+            color="text-yellow-500"
           />
           <QuickStatCard
             icon={<Zap className="w-5 h-5" />}
