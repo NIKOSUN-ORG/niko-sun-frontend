@@ -1,190 +1,223 @@
-# Niko Sun Frontend
+# 🌞 Niko Sun Frontend
 
-Plataforma descentralizada de inversión en energía solar renovable construida con Next.js, wagmi, viem y RainbowKit.
+<div align="center">
 
-## Características
+![Niko Sun Logo](public/NikoSun_logo.png)
 
-- **Compra de Tokens Solares**: Invierte en proyectos de energía solar comprando tokens
-- **Gestión de Portafolio**: Visualiza tus inversiones en tiempo real
-- **Métricas en Tiempo Real**: Monitorea la energía generada y pagos distribuidos
-- **Panel de Administración**: Crea proyectos, actualiza métricas y gestiona fondos
-- **Diseño Responsive**: Interfaz optimizada para móviles, tablets y desktop
-- **Tema Verde/Naranja**: Colores relacionados con energía solar y sostenibilidad
+**Plataforma descentralizada de inversión en energía solar renovable**
 
-## Configuración
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Syscoin](https://img.shields.io/badge/Syscoin-Testnet-orange?style=flat-square)](https://syscoin.org/)
 
-### 1. Instalar Dependencias
+[🌐 Demo en Vivo](https://niko-sun-frontend.vercel.app/) | [English](./README.en.md) | Español
+
+</div>
+
+---
+
+## 📖 Descripción
+
+**Niko Sun** es una plataforma Web3 que permite a los usuarios invertir en proyectos de energía solar mediante la compra de tokens ERC-1155. Los inversores reciben dividendos proporcionales basados en la energía generada por los paneles solares.
+
+### ¿Cómo funciona?
+
+1. 🔌 **Conecta tu wallet** - MetaMask, Coinbase o cualquier wallet compatible
+2. 🔍 **Explora proyectos** - Descubre proyectos solares disponibles para inversión
+3. 💰 **Compra tokens** - Invierte en proyectos con tSYS (Syscoin testnet)
+4. ⚡ **Genera energía** - Tus tokens representan participación en la generación solar
+5. 🎁 **Reclama dividendos** - Recibe recompensas proporcionales a tus tokens
+
+---
+
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+
+- Node.js 18+
+- pnpm (recomendado) o npm
+- Wallet compatible (MetaMask, Coinbase, etc.)
+
+### Instalación
 
 ```bash
-npm install
-# o
+# Clonar el repositorio
+git clone https://github.com/AlesxanDer1102/niko-sun-frontend.git
+cd niko-sun-frontend
+
+# Instalar dependencias
 pnpm install
-# o
-yarn install
-```
 
-### 2. Configurar la Dirección del Contrato
-
-Actualiza la dirección del contrato en `types/Abi.ts`:
-
-```typescript
-export const SOLAR_TOKEN_ADDRESS = "0xTU_DIRECCION_DEL_CONTRATO_AQUI";
-```
-
-### 3. Configurar RainbowKit
-
-Si necesitas cambiar la configuración de la red, edita `rainbowKitConfig.tsx`.
-
-### 4. Ejecutar el Servidor de Desarrollo
-
-```bash
-npm run dev
-# o
+# Ejecutar en desarrollo
 pnpm dev
-# o
-yarn dev
 ```
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-## Estructura del Proyecto
+### Configuración
+
+1. **Dirección del Contrato** - Actualiza en `types/Abi.ts`:
+   ```typescript
+   export const SOLAR_TOKEN_ADDRESS = "0xFcE8D6510898854508C8f8d494e5595eD0a40184"
+   ```
+
+2. **Red** - Configurada para Syscoin Testnet en `rainbowKitConfig.tsx`
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```
 niko-sun-frontend/
 ├── app/
-│   ├── (pages)/
-│   │   ├── page.tsx          # Landing page con proyectos
-│   │   ├── dashboard/
-│   │   │   └── page.tsx      # Portfolio del usuario
-│   │   ├── admin/
-│   │   │   └── page.tsx      # Panel de administración
-│   │   └── metrics/
-│   │       └── page.tsx      # Métricas y estadísticas
-│   ├── globals.css           # Estilos globales con tema verde/naranja
-│   ├── layout.tsx            # Layout principal con sidebar
-│   └── provider.tsx          # Providers de wagmi y RainbowKit
+│   ├── page.tsx              # Landing page con proyectos
+│   ├── dashboard/page.tsx    # Portfolio del usuario
+│   ├── admin/page.tsx        # Panel de administración
+│   ├── metrics/page.tsx      # Métricas (solo owner)
+│   ├── globals.css           # Estilos y animaciones
+│   ├── layout.tsx            # Layout con sidebar
+│   └── provider.tsx          # Providers Web3
 ├── components/
+│   ├── Header.tsx            # Cabecera con wallet
 │   ├── Sidebar.tsx           # Navegación lateral
-│   ├── Header.tsx            # Cabecera con wallet connect
-│   ├── Footer.tsx            # Footer de la aplicación
+│   ├── Footer.tsx            # Pie de página
 │   ├── AdminPanel.tsx        # Panel de administración
-│   ├── ProjectCard.tsx       # Tarjeta de proyecto individual
+│   ├── ProjectCard.tsx       # Tarjeta de proyecto
 │   ├── ProjectList.tsx       # Lista de proyectos
-│   ├── ProjectMetrics.tsx    # Métricas y estadísticas
-│   └── UserBalance.tsx       # Balance de tokens del usuario
+│   ├── ProjectMetrics.tsx    # Métricas globales
+│   ├── UserBalance.tsx       # Portafolio del usuario
+│   └── Toast.tsx             # Sistema de notificaciones
 ├── hooks/
-│   └── useSolarContract.ts   # Hooks personalizados para el contrato
-└── types/
-    └── Abi.ts                # ABI del contrato SolarTokenV1
+│   └── useSolarContract.ts   # Hooks del contrato
+├── types/
+│   └── Abi.ts                # ABI del contrato
+└── public/
+    └── NikoSun_logo.png      # Logo del proyecto
 ```
 
-## Páginas
+---
 
-### `/` - Landing Page
-- Hero section con branding
-- Lista de proyectos solares disponibles
-- Sección "Cómo Funciona"
-- Compra de tokens directamente
+## 🔧 Contrato Inteligente
 
-### `/dashboard` - Portfolio
-- Balance de tokens del usuario por proyecto
-- Estadísticas de inversión
-- Beneficios recibidos
-- Información de energía generada
+### SolarTokenV3Optimized
 
-### `/metrics` - Métricas
-- Estadísticas globales de todos los proyectos
-- Energía total generada
-- Pagos distribuidos
-- Métricas por proyecto individual
+El contrato utiliza el estándar **ERC-1155** con patrón **Ownable** para la gestión de permisos.
 
-### `/admin` - Administración
-- Crear nuevos proyectos solares
-- Actualizar métricas de energía
-- Registrar distribuciones de pagos
-- Retirar fondos del contrato
-- Gestionar estado de proyectos
+#### Roles
 
-## Funcionalidades del Contrato
+| Rol | Permisos |
+|-----|----------|
+| **Owner** | Pausar/despausar, crear proyectos para otros, ver métricas globales |
+| **Project Creator** | Depositar dividendos, actualizar energía, retirar ventas, gestionar su proyecto |
+| **Inversor** | Comprar tokens, reclamar dividendos, ver su portafolio |
 
-### Usuario Regular
+#### Funciones Principales
 
-- **Comprar Tokens**: Invierte en proyectos solares activos
-- **Ver Balance**: Consulta tus tokens de cada proyecto
-- **Ver Métricas**: Monitorea la energía generada por cada proyecto
+```solidity
+// Cualquier usuario
+createProject(name, totalSupply, priceWei, minPurchase)
+mint(projectId, amount) payable
+claimRevenue(projectId)
+claimMultipleOptimized(projectIds[])
 
-### Administrador
+// Solo Project Creator
+depositRevenue(projectId, energyKwhDelta) payable
+withdrawSales(projectId, recipient, amount)
+setProjectStatus(projectId, active)
+updateEnergy(projectId, energyKwhDelta)
 
-- **Crear Proyectos**: Define supply total y precio por token
-- **Actualizar Métricas**: Registra energía generada (kWh)
-- **Registrar Pagos**: Documenta distribuciones a holders
-- **Retirar Fondos**: Extrae ETH del contrato
-- **Gestionar Estado**: Activa/desactiva proyectos
+// Solo Owner
+pause() / unpause()
+createProjectFor(creator, name, totalSupply, priceWei, minPurchase)
+```
 
-## Tecnologías
+---
 
-- **Next.js 16**: Framework de React
-- **Tailwind CSS 4**: Estilos utility-first
-- **wagmi**: React hooks para Ethereum
-- **viem**: TypeScript interface para Ethereum
-- **RainbowKit**: Conexión de wallets
-- **Lucide React**: Iconos
+## 🛠️ Tecnologías
 
-## Paleta de Colores
+| Tecnología | Versión | Uso |
+|------------|---------|-----|
+| [Next.js](https://nextjs.org/) | 16 | Framework React |
+| [TypeScript](https://www.typescriptlang.org/) | 5 | Tipado estático |
+| [Tailwind CSS](https://tailwindcss.com/) | 4 | Estilos |
+| [wagmi](https://wagmi.sh/) | 2.x | Hooks Ethereum |
+| [viem](https://viem.sh/) | 2.x | Cliente Ethereum |
+| [RainbowKit](https://www.rainbowkit.com/) | 2.x | Conexión wallets |
+| [Lucide React](https://lucide.dev/) | - | Iconos |
 
-- **Primary (Verde)**: `#10b981` - Energía renovable
-- **Secondary (Naranja)**: `#f97316` - Sol y energía
-- **Accent (Amarillo)**: `#fbbf24` - Luz solar
-- **Backgrounds**: Gradientes suaves con opacidad baja
+---
 
-## Scripts Disponibles
+## 📜 Scripts
 
 ```bash
-npm run dev      # Servidor de desarrollo
-npm run build    # Build para producción
-npm run start    # Servidor de producción
-npm run lint     # Linter ESLint
+pnpm dev          # Servidor de desarrollo
+pnpm build        # Build de producción (usa webpack)
+pnpm start        # Servidor de producción
+pnpm lint         # Linter ESLint
 ```
 
-## Deploy on Vercel
+> **Nota**: El build usa `--webpack` debido a incompatibilidades de Turbopack con algunas dependencias de WalletConnect.
+
+---
+
+## 🚢 Despliegue
+
+### Vercel (Recomendado)
 
 1. Sube tu código a GitHub
-2. Importa el proyecto en Vercel
+2. Importa el proyecto en [Vercel](https://vercel.com)
 3. Vercel detectará Next.js automáticamente
-4. Despliega
+4. ¡Despliega!
 
-Consulta la [documentación de deployment de Next.js](https://nextjs.org/docs/app/building-your-application/deploying) para más detalles.
+### Variables de Entorno (Opcional)
 
-## Solución de Problemas
+```env
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=tu_project_id
+```
 
-### Error: "Module not found" para @metamask/sdk, @walletconnect/ethereum-provider, etc.
+---
 
-Si encuentras errores relacionados con módulos no encontrados, ya están solucionados en la configuración actual:
+## 🐛 Solución de Problemas
 
-1. **Limpia la caché de Next.js**:
-   ```bash
-   rm -rf .next
-   ```
+### Error: Módulos no encontrados
 
-2. **Reinicia el servidor de desarrollo**:
-   ```bash
-   npm run dev
-   ```
-
-La configuración actual usa solo conectores básicos (Injected wallets y Coinbase) que no requieren dependencias adicionales. Esto es perfecto para Syscoin Testnet.
+```bash
+rm -rf .next node_modules
+pnpm install
+pnpm dev
+```
 
 ### Wallets Soportadas
 
-- **MetaMask** (vía injected wallet)
-- **Coinbase Wallet**
-- **Brave Wallet**
-- **Trust Wallet**
-- Cualquier wallet que se inyecte en el navegador
+- ✅ MetaMask
+- ✅ Coinbase Wallet
+- ✅ Brave Wallet
+- ✅ Trust Wallet
+- ✅ Cualquier wallet inyectada
 
-## Notas Importantes
+---
 
-- Asegúrate de que el contrato esté desplegado antes de usar la aplicación
-- Los usuarios necesitan una wallet compatible instalada en el navegador
-- La red configurada es **Syscoin Testnet** únicamente
-- Solo los administradores con el rol correcto pueden acceder a funciones admin
-- El proyecto está configurado para trabajar sin WalletConnect Project ID (opcional)
+## 🎨 Paleta de Colores
+
+| Color | Hex | Uso |
+|-------|-----|-----|
+| 🟢 Primary | `#10b981` | Energía renovable |
+| 🟠 Secondary | `#f97316` | Sol y energía |
+| 🟡 Accent | `#fbbf24` | Luz solar |
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
+
+---
+
+<div align="center">
+
+**Construido con ❤️ para un futuro sostenible**
+
+[⬆ Volver arriba](#-niko-sun-frontend)
+
+</div>
