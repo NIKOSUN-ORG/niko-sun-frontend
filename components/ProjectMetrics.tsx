@@ -1,11 +1,13 @@
 "use client"
 import { formatEther } from 'viem'
 import { useNextProjectId, useProjectData, useContractBalance } from '@/hooks/useSolarContract'
+import { useTranslations } from 'next-intl'
 import { BarChart3, Zap, DollarSign, Sun, TrendingUp, Loader2, Coins, Users } from 'lucide-react'
 
 export function ProjectMetrics() {
   const { nextProjectId, isLoading: isLoadingProjects } = useNextProjectId()
   const { balance: contractBalance, isLoading: isLoadingBalance } = useContractBalance()
+  const t = useTranslations('projectMetrics')
 
   // Los IDs de proyectos empiezan en 1
   const projectIds = Array.from({ length: nextProjectId - 1 }, (_, i) => i + 1)
@@ -19,28 +21,28 @@ export function ProjectMetrics() {
             <BarChart3 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-foreground">Estadísticas Globales</h3>
-            <p className="text-sm text-muted-foreground">Vista general de la plataforma</p>
+            <h3 className="text-2xl font-bold text-foreground">{t('globalStats')}</h3>
+            <p className="text-sm text-muted-foreground">{t('projectDetails')}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <MetricCard
             icon={<Sun className="w-6 h-6" />}
-            label="Proyectos Activos"
+            label={t('activeProjects')}
             value={isLoadingProjects ? undefined : totalProjects.toString()}
             gradient="from-primary to-primary-dark"
           />
           <MetricCard
             icon={<DollarSign className="w-6 h-6" />}
-            label="Balance del Contrato"
+            label={t('totalRevenue')}
             value={isLoadingBalance ? undefined : (contractBalance ? parseFloat(formatEther(contractBalance)).toFixed(4) : '0')}
             unit="tSYS"
             gradient="from-secondary to-secondary-dark"
           />
           <MetricCard
             icon={<Coins className="w-6 h-6" />}
-            label="Total Proyectos"
+            label={t('totalProjects')}
             value={isLoadingProjects ? undefined : totalProjects.toString()}
             gradient="from-accent to-secondary"
           />
@@ -52,9 +54,9 @@ export function ProjectMetrics() {
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
             <Sun className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h4 className="text-xl font-bold text-foreground mb-2">Sin proyectos aún</h4>
+          <h4 className="text-xl font-bold text-foreground mb-2">{t('noProjectsYet')}</h4>
           <p className="text-muted-foreground max-w-md mx-auto">
-            No hay proyectos solares creados todavía. Sé el primero en crear un proyecto desde el panel de administración.
+            {t('noProjectsYet')}
           </p>
         </div>
       )}
@@ -103,6 +105,8 @@ function MetricCard({
 
 function ProjectMetricCard({ projectId, index }: { projectId: number, index: number }) {
   const { project, metadata, salesBalance, isLoading } = useProjectData(projectId)
+  const t = useTranslations('projectMetrics')
+  const tCommon = useTranslations('common')
 
   if (isLoading) {
     return (
@@ -126,7 +130,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
   if (!project) return null
 
   const { totalSupply, minted, priceWei, active, totalEnergyKwh, totalRevenue, creator } = project
-  const projectName = metadata?.name || `Proyecto #${projectId}`
+  const projectName = metadata?.name || `${t('project')} #${projectId}`
 
   const progress = Number(minted) / Number(totalSupply) * 100
 
@@ -144,12 +148,12 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
             <h4 className="font-bold text-foreground">{projectName}</h4>
             <p className={`text-xs flex items-center gap-1 ${active ? 'text-primary' : 'text-muted'}`}>
               <span className={`w-2 h-2 rounded-full ${active ? 'bg-primary animate-pulse' : 'bg-muted'}`} />
-              {active ? 'Activo' : 'Inactivo'}
+              {active ? tCommon('active') : tCommon('inactive')}
             </p>
           </div>
         </div>
         <div className="text-right text-xs text-muted-foreground">
-          <p>Creador:</p>
+          <p>{tCommon('owner')}:</p>
           <p className="font-mono">{creator.slice(0, 6)}...{creator.slice(-4)}</p>
         </div>
       </div>
@@ -158,7 +162,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
         <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors">
           <div className="flex items-center gap-2 mb-1">
             <Zap className="w-4 h-4 text-primary" />
-            <p className="text-xs text-muted-foreground">Energía</p>
+            <p className="text-xs text-muted-foreground">{t('energy')}</p>
           </div>
           <p className="text-lg font-bold text-primary">{Number(totalEnergyKwh).toLocaleString()} kWh</p>
         </div>
@@ -166,7 +170,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
         <div className="p-3 rounded-lg bg-secondary/5 border border-secondary/20 hover:bg-secondary/10 transition-colors">
           <div className="flex items-center gap-2 mb-1">
             <DollarSign className="w-4 h-4 text-secondary" />
-            <p className="text-xs text-muted-foreground">Revenue Total</p>
+            <p className="text-xs text-muted-foreground">{t('totalRevenue')}</p>
           </div>
           <p className="text-lg font-bold text-secondary">{parseFloat(formatEther(totalRevenue)).toFixed(4)} tSYS</p>
         </div>
@@ -176,7 +180,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
         <div className="p-3 rounded-lg bg-accent/5 border border-accent/20 hover:bg-accent/10 transition-colors">
           <div className="flex items-center gap-2 mb-1">
             <Coins className="w-4 h-4 text-accent" />
-            <p className="text-xs text-muted-foreground">Precio Token</p>
+            <p className="text-xs text-muted-foreground">{t('supply')}</p>
           </div>
           <p className="text-lg font-bold text-accent">{formatEther(priceWei)} tSYS</p>
         </div>
@@ -184,7 +188,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
         <div className="p-3 rounded-lg bg-muted/5 border border-muted/20 hover:bg-muted/10 transition-colors">
           <div className="flex items-center gap-2 mb-1">
             <DollarSign className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Ventas</p>
+            <p className="text-xs text-muted-foreground">{t('sold')}</p>
           </div>
           <p className="text-lg font-bold text-foreground">{salesBalance ? parseFloat(formatEther(salesBalance)).toFixed(4) : '0'} tSYS</p>
         </div>
@@ -192,7 +196,7 @@ function ProjectMetricCard({ projectId, index }: { projectId: number, index: num
 
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span className="text-muted-foreground">Tokens vendidos</span>
+          <span className="text-muted-foreground">{t('tokensSold')}</span>
           <span className="font-semibold text-foreground">{progress.toFixed(1)}%</span>
         </div>
         <div className="h-2 bg-muted/20 rounded-full overflow-hidden progress-bar-animated">

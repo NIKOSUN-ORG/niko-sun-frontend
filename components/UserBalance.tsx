@@ -4,12 +4,15 @@ import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple, useProjectData } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
+import { useTranslations } from 'next-intl'
 import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight, Zap } from 'lucide-react'
 
 export function UserBalance() {
   const { address, isConnected } = useAccount()
   const { nextProjectId } = useNextProjectId()
   const { showToast } = useToast()
+  const t = useTranslations('portfolio')
+  const tToast = useTranslations('toast')
 
   // Los IDs de proyectos empiezan en 1
   const projectIds = Array.from({ length: nextProjectId - 1 }, (_, i) => i + 1)
@@ -19,15 +22,15 @@ export function UserBalance() {
   // Toast notifications
   useEffect(() => {
     if (claimSuccess) {
-      showToast('¡Todas las recompensas reclamadas exitosamente!', 'success')
+      showToast(tToast('claimSuccess'), 'success')
     }
-  }, [claimSuccess, showToast])
+  }, [claimSuccess, showToast, tToast])
 
   useEffect(() => {
     if (claimError) {
-      showToast('Error al reclamar las recompensas', 'error')
+      showToast(tToast('claimError'), 'error')
     }
-  }, [claimError, showToast])
+  }, [claimError, showToast, tToast])
 
   if (!isConnected || !address) {
     return (
@@ -36,10 +39,10 @@ export function UserBalance() {
           <Wallet className="w-10 h-10 text-muted-foreground" />
         </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
-          Conecta tu Wallet
+          {t('connectWallet')}
         </h3>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Para ver tus tokens e inversiones, primero conecta tu wallet haciendo clic en el botón de arriba
+          {t('connectWalletDescription')}
         </p>
       </div>
     )
@@ -63,7 +66,7 @@ export function UserBalance() {
           <TrendingUp className="w-6 h-6 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="text-2xl font-bold text-foreground">Mi Portafolio</h3>
+          <h3 className="text-2xl font-bold text-foreground">{t('title')}</h3>
           <p className="text-sm text-muted-foreground font-mono">
             {address.slice(0, 6)}...{address.slice(-4)}
           </p>
@@ -72,7 +75,7 @@ export function UserBalance() {
           <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
             <Coins className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-primary">
-              {positions.filter(p => p.tokenBalance > BigInt(0)).length} proyecto(s)
+              {positions.filter(p => p.tokenBalance > BigInt(0)).length} {t('projects')}
             </span>
           </div>
         )}
@@ -85,9 +88,9 @@ export function UserBalance() {
             <div className="flex items-center gap-3">
               <Gift className="w-8 h-8 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Recompensas Disponibles</p>
+                <p className="text-sm text-muted-foreground">{t('totalRewards')}</p>
                 <p className="text-2xl font-bold text-green-500">{formatEther(totalClaimable)} tSYS</p>
-                <p className="text-xs text-muted-foreground">En {projectsWithClaimable.length} proyecto(s)</p>
+                <p className="text-xs text-muted-foreground">{t('inProjects', { count: projectsWithClaimable.length })}</p>
               </div>
             </div>
             <button
@@ -98,18 +101,18 @@ export function UserBalance() {
               {isClaiming ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Reclamando...</span>
+                  <span>{t('claiming')}</span>
                 </>
               ) : (
                 <>
                   <Gift className="w-5 h-5" />
-                  <span>Reclamar Todo</span>
+                  <span>{t('claimAll')}</span>
                 </>
               )}
             </button>
           </div>
           {claimSuccess && (
-            <p className="mt-3 text-sm text-green-500 text-center">¡Todas las recompensas reclamadas exitosamente!</p>
+            <p className="mt-3 text-sm text-green-500 text-center">{t('claimSuccessMessage')}</p>
           )}
         </div>
       )}
@@ -142,16 +145,16 @@ export function UserBalance() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/10 flex items-center justify-center">
               <Coins className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-lg font-medium text-foreground mb-2">No hay proyectos aún</p>
-            <p className="text-muted-foreground">Sé el primero en crear un proyecto solar</p>
+            <p className="text-lg font-medium text-foreground mb-2">{t('noProjects')}</p>
+            <p className="text-muted-foreground">{t('beFirst')}</p>
           </div>
         ) : (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/10 flex items-center justify-center">
               <Wallet className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-lg font-medium text-foreground mb-2">Sin inversiones</p>
-            <p className="text-muted-foreground">Explora los proyectos disponibles y comienza a invertir</p>
+            <p className="text-lg font-medium text-foreground mb-2">{t('noInvestments')}</p>
+            <p className="text-muted-foreground">{t('exploreProjects')}</p>
           </div>
         )}
       </div>
@@ -170,8 +173,9 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
   const { projectId, tokenBalance, claimableAmount, totalClaimed } = position
   const { project, metadata, isLoading } = useProjectData(Number(projectId))
   const hasClaimable = claimableAmount > BigInt(0)
+  const t = useTranslations('portfolio')
 
-  const projectName = metadata?.name || `Proyecto Solar #${Number(projectId)}`
+  const projectName = metadata?.name || `${t('solarProject')} #${Number(projectId)}`
   const totalEnergyKwh = project?.totalEnergyKwh !== undefined ? Number(project.totalEnergyKwh) : 0
   const totalSupply = project?.totalSupply !== undefined ? Number(project.totalSupply) : 0
 
@@ -195,12 +199,12 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
               {projectName}
               <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
             </p>
-            <p className="text-xs text-muted-foreground">Token de energía solar</p>
+            <p className="text-xs text-muted-foreground">{t('solarEnergyToken')}</p>
           </div>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-primary">{Number(tokenBalance).toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">tokens</p>
+          <p className="text-xs text-muted-foreground">{t('tokens')}</p>
         </div>
       </div>
 
@@ -208,20 +212,20 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
         <div className="p-2 rounded-lg bg-background/50">
           <div className="flex items-center gap-1 mb-1">
             <Zap className="w-3 h-3 text-accent" />
-            <p className="text-xs text-muted-foreground">Mi Energía</p>
+            <p className="text-xs text-muted-foreground">{t('myEnergy')}</p>
           </div>
           <p className="text-sm font-bold text-accent">
             {userEnergyShare.toLocaleString(undefined, { maximumFractionDigits: 2 })} kWh
           </p>
         </div>
         <div className="p-2 rounded-lg bg-background/50">
-          <p className="text-xs text-muted-foreground">Por Reclamar</p>
+          <p className="text-xs text-muted-foreground">{t('toClaim')}</p>
           <p className={`text-sm font-bold ${hasClaimable ? 'text-green-500' : 'text-muted-foreground'}`}>
             {parseFloat(formatEther(claimableAmount)).toFixed(6)} tSYS
           </p>
         </div>
         <div className="p-2 rounded-lg bg-background/50">
-          <p className="text-xs text-muted-foreground">Reclamado</p>
+          <p className="text-xs text-muted-foreground">{t('claimed')}</p>
           <p className="text-sm font-bold text-secondary">
             {parseFloat(formatEther(totalClaimed)).toFixed(6)} tSYS
           </p>
@@ -230,7 +234,7 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
 
       {totalEnergyKwh > 0 && (
         <div className="mt-2 text-xs text-muted-foreground text-center">
-          Energía total del proyecto: {totalEnergyKwh.toLocaleString()} kWh
+          {t('totalProjectEnergy')}: {totalEnergyKwh.toLocaleString()} kWh
         </div>
       )}
     </div>

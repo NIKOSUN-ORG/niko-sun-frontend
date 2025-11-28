@@ -1,8 +1,11 @@
 import { ProjectList } from "@/components/ProjectList"
 import { Sun, Zap, TrendingUp, Sparkles } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from 'next-intl'
 
 export default function Home() {
+  const t = useTranslations('home')
+  
   return (
     <div className="space-y-16">
       {/* Hero Section */}
@@ -21,24 +24,23 @@ export default function Home() {
           Niko Sun
         </h1>
         <p className="text-xl sm:text-2xl text-muted max-w-3xl mx-auto mb-8">
-          Invierte en energía solar renovable con tokens blockchain.
-          Participa en proyectos solares y recibe beneficios por la energía generada.
+          {t('heroSubtitle')}
         </p>
         <div className="flex flex-wrap justify-center gap-6 mb-12">
           <FeatureCard
             icon={<Sun className="w-6 h-6" />}
-            title="100% Solar"
-            description="Energía limpia y renovable"
+            title={t('feature1Title')}
+            description={t('feature1Desc')}
           />
           <FeatureCard
             icon={<Zap className="w-6 h-6" />}
-            title="Tokenizado"
-            description="Basado en blockchain"
+            title={t('feature2Title')}
+            description={t('feature2Desc')}
           />
           <FeatureCard
             icon={<TrendingUp className="w-6 h-6" />}
-            title="Transparente"
-            description="Métricas en tiempo real"
+            title={t('feature3Title')}
+            description={t('feature3Desc')}
           />
         </div>
       </section>
@@ -52,10 +54,10 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-                Proyectos Solares Disponibles
+                {t('projectsTitle')}
               </h2>
               <p className="text-muted-foreground">
-                Explora y compra tokens de proyectos de energía solar
+                {t('projectsSubtitle')}
               </p>
             </div>
           </div>
@@ -67,23 +69,23 @@ export default function Home() {
       <section className="py-12 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border-2 border-primary/20">
         <div className="text-center max-w-4xl mx-auto px-6">
           <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-            ¿Cómo Funciona?
+            {t('howItWorks')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             <StepCard
               number="1"
-              title="Conecta tu Wallet"
-              description="Conecta tu wallet de Ethereum compatible"
+              title={t('step1Title')}
+              description={t('step1Desc')}
             />
             <StepCard
               number="2"
-              title="Compra Tokens"
-              description="Invierte en proyectos solares comprando tokens"
+              title={t('step2Title')}
+              description={t('step2Desc')}
             />
             <StepCard
               number="3"
-              title="Recibe Beneficios"
-              description="Obtén retornos por la energía generada"
+              title={t('step3Title')}
+              description={t('step3Desc')}
             />
           </div>
         </div>

@@ -6,6 +6,8 @@ import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { ToastProvider } from "@/components/Toast"
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,32 +24,37 @@ export const metadata: Metadata = {
   description: "Invierte en energía solar renovable con tokens blockchain. Participa en proyectos solares y recibe beneficios por la energía generada.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="es">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <ToastProvider>
-            <div className="min-h-screen bg-background">
-              <Sidebar />
-              <div className="lg:pl-72">
-                <Header />
-                <main className="pt-20 pb-8 px-6 lg:px-8">
-                  <div className="max-w-7xl mx-auto">
-                    {children}
-                  </div>
-                </main>
-                <Footer />
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <ToastProvider>
+              <div className="min-h-screen bg-background">
+                <Sidebar />
+                <div className="lg:pl-72">
+                  <Header />
+                  <main className="pt-20 pb-8 px-6 lg:px-8">
+                    <div className="max-w-7xl mx-auto">
+                      {children}
+                    </div>
+                  </main>
+                  <Footer />
+                </div>
               </div>
-            </div>
-          </ToastProvider>
-        </Providers>
+            </ToastProvider>
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

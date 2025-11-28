@@ -1,6 +1,10 @@
+"use client"
 import Image from "next/image"
+import { useTranslations } from 'next-intl'
 
 export function Footer() {
+  const t = useTranslations('footer')
+  
   return (
     <footer className="bg-card-bg border-t border-card-border py-12 mt-16">
       <div className="container mx-auto px-6">
@@ -18,13 +22,12 @@ export function Footer() {
             </span>
           </div>
           <p className="text-muted text-center max-w-2xl">
-            Plataforma descentralizada de inversión en energía solar renovable.
-            Construida con blockchain para máxima transparencia y seguridad.
+            {t('description')}
           </p>
           <div className="flex gap-4 text-sm text-muted-foreground">
-            <span>© 2025 Niko Sun</span>
+            <span>{t('copyright')}</span>
             <span>•</span>
-            <span>Todos los derechos reservados</span>
+            <span>{t('rights')}</span>
           </div>
         </div>
       </div>

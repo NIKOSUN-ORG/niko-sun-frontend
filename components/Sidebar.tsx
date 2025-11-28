@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { useContractOwner } from '@/hooks/useSolarContract'
+import { useTranslations } from 'next-intl'
 import {
   LayoutDashboard,
   TrendingUp,
@@ -20,37 +21,39 @@ export function Sidebar() {
   const pathname = usePathname()
   const { address } = useAccount()
   const { owner } = useContractOwner()
+  const t = useTranslations('nav')
+  const tCommon = useTranslations('common')
 
   const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
   const menuItems = [
     {
-      name: 'Inicio',
+      name: t('home'),
       href: '/',
       icon: Home,
-      description: 'Proyectos disponibles',
+      description: t('homeDesc'),
       showAlways: true
     },
     {
-      name: 'Mi Portfolio',
+      name: t('portfolio'),
       href: '/dashboard',
       icon: LayoutDashboard,
-      description: 'Mis inversiones',
+      description: t('portfolioDesc'),
       showAlways: true
     },
     {
-      name: 'Métricas',
+      name: t('metrics'),
       href: '/metrics',
       icon: BarChart3,
-      description: 'Estadísticas globales',
-      showAlways: false, // Solo para owner
+      description: t('metricsDesc'),
+      showAlways: false,
       ownerOnly: true
     },
     {
-      name: 'Administración',
+      name: t('admin'),
       href: '/admin',
       icon: Settings,
-      description: 'Panel de control',
+      description: t('adminDesc'),
       showAlways: true
     }
   ]
@@ -102,7 +105,7 @@ export function Sidebar() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Niko Sun
                 </h1>
-                <p className="text-xs text-muted-foreground">Energía Solar</p>
+                <p className="text-xs text-muted-foreground">{t('solarEnergy')}</p>
               </div>
             </Link>
           </div>
@@ -141,7 +144,7 @@ export function Sidebar() {
                     >
                       {item.name}
                       {item.ownerOnly && (
-                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent">Owner</span>
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent">{tCommon('owner')}</span>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">{item.description}</p>

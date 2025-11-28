@@ -18,6 +18,7 @@ import {
   useTransferProjectOwnership,
 } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
+import { useTranslations } from 'next-intl'
 import {
   Settings,
   Plus,
@@ -39,6 +40,7 @@ export function AdminPanel() {
   const { owner } = useContractOwner()
   const { isPaused } = useContractPaused()
   const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'revenue' | 'owner'>('create')
+  const t = useTranslations('admin')
 
   const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
@@ -49,10 +51,10 @@ export function AdminPanel() {
           <Shield className="w-10 h-10 text-muted-foreground" />
         </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
-          Panel de Administración
+          {t('title')}
         </h3>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Conecta tu wallet para acceder al panel de administración y gestionar tus proyectos solares
+          {t('connectWallet')}
         </p>
       </div>
     )
@@ -66,7 +68,7 @@ export function AdminPanel() {
             <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white">Panel de Administración</h3>
+            <h3 className="text-2xl font-bold text-white">{t('title')}</h3>
             <p className="text-sm text-white/80">
               {address?.slice(0, 6)}...{address?.slice(-4)}
               {isOwner && <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">Owner</span>}
@@ -76,7 +78,7 @@ export function AdminPanel() {
         {isPaused && (
           <div className="mt-3 p-2 bg-red-500/20 rounded-lg text-white text-sm flex items-center gap-2">
             <Pause className="w-4 h-4" />
-            Contrato pausado - Las compras están deshabilitadas
+            {t('contractPaused')}
           </div>
         )}
       </div>
@@ -91,7 +93,7 @@ export function AdminPanel() {
               }`}
           >
             <Plus className="w-5 h-5 inline mr-2" />
-            Crear Proyecto
+            {t('tabCreate')}
           </button>
           <button
             onClick={() => setActiveTab('manage')}
@@ -101,7 +103,7 @@ export function AdminPanel() {
               }`}
           >
             <Zap className="w-5 h-5 inline mr-2" />
-            Gestionar Proyecto
+            {t('tabManage')}
           </button>
           <button
             onClick={() => setActiveTab('revenue')}
@@ -111,7 +113,7 @@ export function AdminPanel() {
               }`}
           >
             <DollarSign className="w-5 h-5 inline mr-2" />
-            Revenue
+            {t('tabRevenue')}
           </button>
           {isOwner && (
             <button
@@ -122,7 +124,7 @@ export function AdminPanel() {
                 }`}
             >
               <Shield className="w-5 h-5 inline mr-2" />
-              Owner
+              {t('tabOwner')}
             </button>
           )}
         </div>
@@ -145,22 +147,23 @@ function CreateProjectForm() {
   const [minPurchase, setMinPurchase] = useState('1')
   const { createProject, isPending, isSuccess, error } = useCreateProject()
   const { showToast } = useToast()
+  const t = useTranslations('createProject')
 
   useEffect(() => {
     if (isSuccess) {
-      showToast(`¡Proyecto "${name}" creado exitosamente!`, 'success')
+      showToast(t('success', { name }), 'success')
       setName('')
       setTotalSupply('')
       setPrice('')
       setMinPurchase('1')
     }
-  }, [isSuccess, name, showToast])
+  }, [isSuccess, name, showToast, t])
 
   useEffect(() => {
     if (error) {
-      showToast(`Error al crear proyecto: ${error.message}`, 'error')
+      showToast(t('error', { message: error.message }), 'error')
     }
-  }, [error, showToast])
+  }, [error, showToast, t])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -173,14 +176,14 @@ function CreateProjectForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          Nombre del Proyecto
+          {t('projectName')}
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-          placeholder="Panel Solar Norte"
+          placeholder={t('projectNamePlaceholder')}
           required
         />
       </div>
@@ -188,7 +191,7 @@ function CreateProjectForm() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Suministro Total de Tokens
+            {t('totalSupply')}
           </label>
           <input
             type="number"
@@ -202,7 +205,7 @@ function CreateProjectForm() {
 
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Compra Mínima (tokens)
+            {t('minPurchase')}
           </label>
           <input
             type="number"
@@ -218,7 +221,7 @@ function CreateProjectForm() {
 
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          Precio por Token (tSYS)
+          {t('pricePerToken')}
         </label>
         <input
           type="text"
@@ -238,12 +241,12 @@ function CreateProjectForm() {
         {isPending ? (
           <>
             <Loader2 className="w-6 h-6 animate-spin" />
-            <span>Creando...</span>
+            <span>{t('creating')}</span>
           </>
         ) : (
           <>
             <Plus className="w-6 h-6" />
-            <span>Crear Proyecto</span>
+            <span>{t('createButton')}</span>
           </>
         )}
       </button>
@@ -252,7 +255,7 @@ function CreateProjectForm() {
         <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 text-primary" />
           <p className="text-sm text-primary font-medium">
-            ¡Proyecto creado exitosamente!
+            {t('success', { name })}
           </p>
         </div>
       )}
@@ -261,7 +264,7 @@ function CreateProjectForm() {
         <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
           <XCircle className="w-5 h-5 text-red-500" />
           <p className="text-sm text-red-500 font-medium">
-            Error: {error.message}
+            {t('error', { message: error.message })}
           </p>
         </div>
       )}
@@ -274,6 +277,8 @@ function ManageProjectForm() {
   const [projectId, setProjectId] = useState('')
   const [energyDelta, setEnergyDelta] = useState('')
   const [newCreator, setNewCreator] = useState('')
+  const t = useTranslations('manageProject')
+  const tCommon = useTranslations('common')
 
   const { updateEnergy, isPending: isUpdating, isSuccess: updateSuccess, error: updateError } = useUpdateEnergy()
   const { setProjectStatus, isPending: isToggling, isSuccess: toggleSuccess, error: toggleError } = useSetProjectStatus()
@@ -307,7 +312,7 @@ function ManageProjectForm() {
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          ID del Proyecto
+          {t('projectId')}
         </label>
         <input
           type="number"
@@ -319,9 +324,9 @@ function ManageProjectForm() {
         />
         {projectId && project && (
           <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
-            <p><span className="font-semibold">Estado:</span> {project.active ? '✅ Activo' : '❌ Inactivo'}</p>
-            <p><span className="font-semibold">Creador:</span> {project.creator.slice(0, 8)}...{project.creator.slice(-6)}</p>
-            <p><span className="font-semibold">Permisos:</span> {canManage ? '✅ Puedes gestionar' : '❌ Sin permisos'}</p>
+            <p><span className="font-semibold">{t('status')}:</span> {project.active ? `✅ ${tCommon('active')}` : `❌ ${tCommon('inactive')}`}</p>
+            <p><span className="font-semibold">{t('creator')}:</span> {project.creator.slice(0, 8)}...{project.creator.slice(-6)}</p>
+            <p><span className="font-semibold">:</span> {canManage ? `✅ ${t('youAreCreator')}` : `❌ ${t('notCreator')}`}</p>
           </div>
         )}
       </div>
@@ -332,12 +337,12 @@ function ManageProjectForm() {
           <form onSubmit={handleUpdateEnergy} className="space-y-4 border-t border-border pt-6">
             <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
               <Zap className="w-5 h-5 text-primary" />
-              Actualizar Energía Generada
+              {t('updateEnergy')}
             </h4>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
-                Energía (kWh)
+                {t('energyToAdd')}
               </label>
               <input
                 type="number"
@@ -356,12 +361,12 @@ function ManageProjectForm() {
               {isUpdating ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Actualizando...</span>
+                  <span>{t('updating')}</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-5 h-5" />
-                  <span>Actualizar Energía</span>
+                  <span>{t('updateButton')}</span>
                 </>
               )}
             </button>
@@ -369,7 +374,7 @@ function ManageProjectForm() {
             {updateSuccess && (
               <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <p className="text-sm text-primary font-medium text-center">
-                  ¡Energía actualizada!
+                  ✅ {t('updateEnergy')}
                 </p>
               </div>
             )}
@@ -387,7 +392,7 @@ function ManageProjectForm() {
             <div className="space-y-4 border-t border-border pt-6">
               <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
                 <Settings className="w-5 h-5 text-secondary" />
-                Estado del Proyecto
+                {t('changeStatus')}
               </h4>
 
               <div className="flex gap-4">
@@ -397,7 +402,7 @@ function ManageProjectForm() {
                   className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Play className="w-5 h-5" />
-                  Activar
+                  {t('activate')}
                 </button>
                 <button
                   onClick={() => handleToggleStatus(false)}
@@ -405,14 +410,14 @@ function ManageProjectForm() {
                   className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Pause className="w-5 h-5" />
-                  Desactivar
+                  {t('deactivate')}
                 </button>
               </div>
 
               {toggleSuccess && (
                 <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                   <p className="text-sm text-primary font-medium text-center">
-                    ¡Estado actualizado!
+                    ✅ {t('status')}
                   </p>
                 </div>
               )}
@@ -424,12 +429,12 @@ function ManageProjectForm() {
             <form onSubmit={handleTransferOwnership} className="space-y-4 border-t border-border pt-6">
               <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
                 <User className="w-5 h-5 text-accent" />
-                Transferir Propiedad del Proyecto
+                {t('transferOwnership')}
               </h4>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-2">
-                  Nueva Dirección del Creador
+                  {t('newCreator')}
                 </label>
                 <input
                   type="text"
@@ -448,12 +453,12 @@ function ManageProjectForm() {
                 {isTransferring ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Transfiriendo...</span>
+                    <span>{t('transferring')}</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
-                    <span>Transferir Propiedad</span>
+                    <span>{t('transferButton')}</span>
                   </>
                 )}
               </button>
@@ -461,7 +466,7 @@ function ManageProjectForm() {
               {transferSuccess && (
                 <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                   <p className="text-sm text-primary font-medium text-center">
-                    ¡Propiedad transferida!
+                    ✅ {t('transferOwnership')}
                   </p>
                 </div>
               )}
@@ -480,7 +485,7 @@ function ManageProjectForm() {
       {!canManage && projectId && (
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
           <p className="text-sm text-yellow-600 font-medium text-center">
-            No tienes permisos para gestionar este proyecto. Solo el creador del proyecto o el owner del contrato pueden hacerlo.
+            {t('notCreator')}
           </p>
         </div>
       )}
@@ -495,6 +500,7 @@ function RevenueForm() {
   const [energyKwh, setEnergyKwh] = useState('0')
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [recipient, setRecipient] = useState('')
+  const t = useTranslations('revenue')
 
   const { depositRevenue, isPending: isDepositing, isSuccess: depositSuccess, error: depositError } = useDepositRevenue()
   const { withdrawSales, isPending: isWithdrawing, isSuccess: withdrawSuccess, error: withdrawError } = useWithdrawSales()
@@ -526,7 +532,7 @@ function RevenueForm() {
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-foreground mb-2">
-          ID del Proyecto
+          {t('projectId')}
         </label>
         <input
           type="number"
@@ -539,8 +545,8 @@ function RevenueForm() {
         {projectId && project && (
           <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
             <p><span className="font-semibold">Revenue Total:</span> {formatEther(project.totalRevenue)} tSYS</p>
-            <p><span className="font-semibold">Balance de Ventas:</span> {salesBalance ? formatEther(salesBalance) : '0'} tSYS</p>
-            <p><span className="font-semibold">Energía Total:</span> {Number(project.totalEnergyKwh)} kWh</p>
+            <p><span className="font-semibold">{t('salesBalance')}:</span> {salesBalance ? formatEther(salesBalance) : '0'} tSYS</p>
+            <p><span className="font-semibold">{t('energyGenerated')}:</span> {Number(project.totalEnergyKwh)} kWh</p>
           </div>
         )}
       </div>
@@ -550,13 +556,13 @@ function RevenueForm() {
         <form onSubmit={handleDepositRevenue} className="space-y-4 border-t border-border pt-6">
           <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-primary" />
-            Depositar Revenue (distribuye a holders)
+            {t('depositRevenue')}
           </h4>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
-                Monto (tSYS)
+                {t('amount')}
               </label>
               <input
                 type="text"
@@ -568,7 +574,7 @@ function RevenueForm() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
-                Energía Generada (kWh)
+                {t('energyGenerated')}
               </label>
               <input
                 type="number"
@@ -588,12 +594,12 @@ function RevenueForm() {
             {isDepositing ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Depositando...</span>
+                <span>{t('depositing')}</span>
               </>
             ) : (
               <>
                 <DollarSign className="w-5 h-5" />
-                <span>Depositar Revenue</span>
+                <span>{t('depositButton')}</span>
               </>
             )}
           </button>
@@ -601,14 +607,14 @@ function RevenueForm() {
           {depositSuccess && (
             <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
               <p className="text-sm text-primary font-medium text-center">
-                ¡Revenue depositado! Los holders pueden reclamar sus recompensas.
+                {t('depositSuccess')}
               </p>
             </div>
           )}
           {depositError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
               <p className="text-sm text-red-500 font-medium text-center">
-                Error: {depositError.message}
+                {t('depositError')}: {depositError.message}
               </p>
             </div>
           )}
@@ -620,15 +626,15 @@ function RevenueForm() {
         <form onSubmit={handleWithdrawSales} className="space-y-4 border-t border-border pt-6">
           <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
             <Download className="w-5 h-5 text-secondary" />
-            Retirar Balance de Ventas
+            {t('withdrawSales')}
           </h4>
           <p className="text-sm text-muted-foreground">
-            Solo el creador del proyecto puede retirar el balance de las ventas de tokens.
+            {t('salesBalance')}: {salesBalance ? formatEther(salesBalance) : '0'} tSYS
           </p>
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">
-              Dirección del Destinatario
+              {t('recipient')}
             </label>
             <input
               type="text"
@@ -641,7 +647,7 @@ function RevenueForm() {
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">
-              Monto a Retirar (tSYS)
+              {t('amountToWithdraw')}
             </label>
             <input
               type="text"
@@ -660,12 +666,12 @@ function RevenueForm() {
             {isWithdrawing ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Retirando...</span>
+                <span>{t('withdrawing')}</span>
               </>
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                <span>Retirar Ventas</span>
+                <span>{t('withdrawButton')}</span>
               </>
             )}
           </button>
@@ -673,14 +679,14 @@ function RevenueForm() {
           {withdrawSuccess && (
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
               <p className="text-sm text-secondary font-medium text-center">
-                ¡Fondos retirados exitosamente!
+                {t('withdrawSuccess')}
               </p>
             </div>
           )}
           {withdrawError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
               <p className="text-sm text-red-500 font-medium text-center">
-                Error: {withdrawError.message}
+                {t('withdrawError')}: {withdrawError.message}
               </p>
             </div>
           )}
@@ -690,7 +696,7 @@ function RevenueForm() {
       {!canDeposit && !canWithdraw && projectId && (
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
           <p className="text-sm text-yellow-600 font-medium text-center">
-            No tienes permisos para gestionar el revenue de este proyecto.
+            {t('depositError')}
           </p>
         </div>
       )}
@@ -702,18 +708,19 @@ function OwnerPanel() {
   const { pause, unpause, isPending, isSuccess, error } = usePauseContract()
   const { isPaused } = useContractPaused()
   const { balance } = useContractBalance()
+  const t = useTranslations('ownerPanel')
 
   return (
     <div className="space-y-6">
       <div className="p-6 rounded-lg bg-gradient-to-br from-secondary/10 to-primary/10 border border-secondary/30">
         <h4 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
           <Shield className="w-5 h-5 text-secondary" />
-          Control del Contrato (Solo Owner)
+          {t('title')}
         </h4>
 
         <div className="mb-4 p-3 rounded-lg bg-muted/10 text-sm">
-          <p><span className="font-semibold">Balance Total del Contrato:</span> {balance ? formatEther(balance) : '0'} tSYS</p>
-          <p><span className="font-semibold">Estado:</span> {isPaused ? '⏸️ Pausado' : '▶️ Activo'}</p>
+          <p><span className="font-semibold">{t('contractBalance')}:</span> {balance ? formatEther(balance) : '0'} tSYS</p>
+          <p><span className="font-semibold">{t('contractStatus')}:</span> {isPaused ? `⏸️ ${t('paused')}` : `▶️ ${t('running')}`}</p>
         </div>
 
         <div className="flex gap-4">
@@ -727,7 +734,7 @@ function OwnerPanel() {
             ) : (
               <>
                 <Pause className="w-6 h-6" />
-                <span>Pausar Contrato</span>
+                <span>{t('pauseContract')}</span>
               </>
             )}
           </button>
@@ -741,7 +748,7 @@ function OwnerPanel() {
             ) : (
               <>
                 <Play className="w-6 h-6" />
-                <span>Reanudar Contrato</span>
+                <span>{t('resumeContract')}</span>
               </>
             )}
           </button>
@@ -751,7 +758,7 @@ function OwnerPanel() {
           <div className="mt-4 p-4 rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-primary" />
             <p className="text-sm text-primary font-medium">
-              ¡Operación completada!
+              ✅
             </p>
           </div>
         )}

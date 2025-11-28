@@ -1,6 +1,7 @@
 "use client"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import Image from "next/image"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 
 export function Header() {
   return (
@@ -24,8 +25,9 @@ export function Header() {
           {/* Spacer for desktop */}
           <div className="hidden lg:block flex-1" />
 
-          {/* Connect Button */}
-          <div className="ml-auto">
+          {/* Language Switcher & Connect Button */}
+          <div className="flex items-center gap-3 ml-auto">
+            <LanguageSwitcher />
             <ConnectButton />
           </div>
         </div>

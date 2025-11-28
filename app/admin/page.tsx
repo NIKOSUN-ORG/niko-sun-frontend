@@ -1,7 +1,10 @@
 import { AdminPanel } from "@/components/AdminPanel"
 import { Settings, Shield, AlertTriangle, User } from "lucide-react"
+import { useTranslations } from 'next-intl'
 
 export default function AdminPage() {
+  const t = useTranslations('admin')
+  
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -12,10 +15,10 @@ export default function AdminPage() {
           </div>
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Panel de Administración
+              {t('title')}
             </h1>
             <p className="text-muted-foreground">
-              Gestiona proyectos, deposita revenue y administra el contrato
+              {t('subtitle')}
             </p>
           </div>
         </div>
@@ -26,15 +29,15 @@ export default function AdminPage() {
         <AlertTriangle className="w-6 h-6 text-secondary flex-shrink-0 mt-1" />
         <div>
           <p className="font-semibold text-foreground mb-1">
-            Sistema de Permisos
+            {t('permissionSystem')}
           </p>
           <p className="text-sm text-muted-foreground mb-3">
-            El contrato utiliza un sistema de permisos basado en roles:
+            {t('permissionDesc')}
           </p>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• <strong className="text-foreground">Cualquier usuario:</strong> Puede crear proyectos y convertirse en su creador</li>
-            <li>• <strong className="text-foreground">Creador del Proyecto:</strong> Puede gestionar su proyecto, depositar revenue, cambiar estado y retirar ventas</li>
-            <li>• <strong className="text-foreground">Owner del Contrato:</strong> Puede pausar/reanudar el contrato y crear proyectos para otros</li>
+            <li>• <strong className="text-foreground">{t('anyUser')}</strong> {t('anyUserDesc')}</li>
+            <li>• <strong className="text-foreground">{t('projectCreator')}</strong> {t('projectCreatorDesc')}</li>
+            <li>• <strong className="text-foreground">{t('contractOwner')}</strong> {t('contractOwnerDesc')}</li>
           </ul>
         </div>
       </div>
@@ -46,23 +49,23 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           icon={<Settings className="w-6 h-6" />}
-          label="Crear Proyecto"
-          value="Cualquier usuario"
-          description="Crea proyectos solares"
+          label={t('createProjectCard')}
+          value={t('anyUser').replace(':', '')}
+          description={t('createProjectCardDesc')}
           gradient="from-primary to-primary-dark"
         />
         <StatCard
           icon={<User className="w-6 h-6" />}
-          label="Gestionar Proyecto"
-          value="Project Creator"
-          description="Administra tu proyecto"
+          label={t('manageProjectCard')}
+          value={t('projectCreator').replace(':', '')}
+          description={t('manageProjectCardDesc')}
           gradient="from-secondary to-secondary-dark"
         />
         <StatCard
           icon={<Shield className="w-6 h-6" />}
-          label="Control Global"
-          value="Contract Owner"
-          description="Pausar/Reanudar contrato"
+          label={t('globalControl')}
+          value={t('contractOwner').replace(':', '')}
+          description={t('globalControlDesc')}
           gradient="from-accent to-secondary"
         />
       </div>

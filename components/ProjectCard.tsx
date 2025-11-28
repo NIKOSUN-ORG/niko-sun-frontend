@@ -4,6 +4,7 @@ import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useMintTokens, useProjectData, useClaimableAmount, useClaimRevenue } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
+import { useTranslations } from 'next-intl'
 import { Sun, Zap, ShoppingCart, Loader2, Gift, CheckCircle, TrendingUp, Coins } from 'lucide-react'
 
 interface ProjectCardProps {
@@ -17,35 +18,36 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
   const { claimable } = useClaimableAmount(projectId, address)
   const { claimRevenue, isPending: isClaiming, isSuccess: claimSuccess, error: claimError } = useClaimRevenue()
   const { showToast } = useToast()
+  const t = useTranslations('projectCard')
   const [amount, setAmount] = useState(1)
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
 
   // Toast notifications
   useEffect(() => {
     if (isSuccess) {
-      showToast(`¡Compraste ${amount} tokens exitosamente!`, 'success')
+      showToast(t('buySuccess', { amount }), 'success')
       setShowSuccessAnimation(true)
       setTimeout(() => setShowSuccessAnimation(false), 2000)
     }
-  }, [isSuccess, amount, showToast])
+  }, [isSuccess, amount, showToast, t])
 
   useEffect(() => {
     if (error) {
-      showToast(error.message || 'Error al comprar tokens', 'error')
+      showToast(error.message || t('buyError'), 'error')
     }
-  }, [error, showToast])
+  }, [error, showToast, t])
 
   useEffect(() => {
     if (claimSuccess) {
-      showToast('¡Recompensa reclamada exitosamente!', 'success')
+      showToast(t('claimSuccess'), 'success')
     }
-  }, [claimSuccess, showToast])
+  }, [claimSuccess, showToast, t])
 
   useEffect(() => {
     if (claimError) {
-      showToast('Error al reclamar recompensa', 'error')
+      showToast(t('claimError'), 'error')
     }
-  }, [claimError, showToast])
+  }, [claimError, showToast, t])
 
   if (isLoading) {
     return (
@@ -101,7 +103,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
             <h3 className="text-xl font-bold text-foreground">{projectName}</h3>
             <p className={`text-sm font-medium flex items-center gap-1 ${active ? 'text-primary' : 'text-muted'}`}>
               <span className={`w-2 h-2 rounded-full ${active ? 'bg-primary animate-pulse' : 'bg-muted'}`} />
-              {active ? 'Activo' : 'Inactivo'}
+              {active ? t('active') : t('inactive')}
             </p>
           </div>
         </div>
@@ -118,7 +120,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
       <div className="space-y-4">
         <div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted-foreground">Progreso de venta</span>
+            <span className="text-muted-foreground">{t('saleProgress')}</span>
             <span className="font-semibold text-foreground">
               {Number(minted).toLocaleString()}/{Number(totalSupply).toLocaleString()} tokens
             </span>
@@ -129,20 +131,20 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-1 text-right">{progress.toFixed(1)}% vendido</p>
+          <p className="text-xs text-muted-foreground mt-1 text-right">{progress.toFixed(1)}% {t('sold')}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-xs text-muted-foreground mb-1">Precio</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('price')}</p>
             <p className="text-lg font-bold text-primary">{formatEther(priceWei)} tSYS</p>
           </div>
           <div className="p-3 rounded-lg bg-secondary/5 border border-secondary/20">
-            <p className="text-xs text-muted-foreground mb-1">Disponibles</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('available')}</p>
             <p className="text-lg font-bold text-secondary">{available}</p>
           </div>
           <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
-            <p className="text-xs text-muted-foreground mb-1">Mín. Compra</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('minPurchase')}</p>
             <p className="text-lg font-bold text-accent">{Number(minPurchase)}</p>
           </div>
         </div>
@@ -154,7 +156,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
               <div className="flex items-center gap-2">
                 <Gift className="w-5 h-5 text-green-500" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Recompensas disponibles</p>
+                  <p className="text-xs text-muted-foreground">{t('rewardsAvailable')}</p>
                   <p className="text-lg font-bold text-green-500">{formatEther(claimable)} tSYS</p>
                 </div>
               </div>
@@ -168,11 +170,11 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
                 ) : (
                   <Gift className="w-4 h-4" />
                 )}
-                Reclamar
+                {t('claim')}
               </button>
             </div>
             {claimSuccess && (
-              <p className="mt-2 text-xs text-green-500 text-center">¡Recompensa reclamada!</p>
+              <p className="mt-2 text-xs text-green-500 text-center">{t('rewardClaimed')}</p>
             )}
           </div>
         )}
@@ -187,7 +189,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
                 value={amount}
                 onChange={(e) => setAmount(Math.max(Number(minPurchase), Math.min(available, Number(e.target.value))))}
                 className="flex-1 px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-semibold focus:border-primary focus:outline-none transition-colors"
-                placeholder="Cantidad"
+                placeholder={t('quantity')}
               />
               <button
                 onClick={handleMint}
@@ -197,23 +199,23 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Comprando...</span>
+                    <span>{t('buying')}</span>
                   </>
                 ) : (
                   <>
                     <ShoppingCart className="w-5 h-5" />
-                    <span>Comprar</span>
+                    <span>{t('buyTokens')}</span>
                   </>
                 )}
               </button>
             </div>
             <p className="text-sm text-center text-muted-foreground">
-              Total: <span className="font-bold text-foreground">{totalCost} tSYS</span>
+              {t('total')}: <span className="font-bold text-foreground">{totalCost} tSYS</span>
             </p>
             {isSuccess && (
               <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <p className="text-sm text-primary font-medium text-center">
-                  ¡Compra exitosa!
+                  {t('buySuccess', { amount })}
                 </p>
               </div>
             )}
@@ -223,7 +225,7 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
         {!address && (
           <div className="p-4 rounded-lg bg-muted/10 border border-muted/30">
             <p className="text-sm text-center text-muted-foreground">
-              Conecta tu wallet para comprar tokens
+              {t('connectToBuy')}
             </p>
           </div>
         )}

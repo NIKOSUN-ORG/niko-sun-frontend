@@ -6,8 +6,10 @@ import { useNextProjectId, useInvestorPortfolio } from '@/hooks/useSolarContract
 import { formatEther } from 'viem'
 import Link from 'next/link'
 import { SOLAR_TOKEN_ABI, SOLAR_TOKEN_ADDRESS } from '@/types/Abi'
+import { useTranslations } from 'next-intl'
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard')
   const { address, isConnected } = useAccount()
   const { nextProjectId } = useNextProjectId()
 
@@ -65,10 +67,10 @@ export default function DashboardPage() {
           </div>
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Mi Portfolio
+              {t('title')}
             </h1>
             <p className="text-muted-foreground">
-              Revisa tus inversiones en tokens solares
+              {t('subtitle')}
             </p>
           </div>
         </div>
@@ -79,31 +81,31 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <QuickStatCard
             icon={<Coins className="w-5 h-5" />}
-            label="Mis Tokens"
+            label={t('myTokens')}
             value={totalTokens.toString()}
             color="text-primary"
           />
           <QuickStatCard
             icon={<FolderKanban className="w-5 h-5" />}
-            label="Proyectos"
+            label={t('projects')}
             value={projectsWithTokens.toString()}
             color="text-secondary"
           />
           <QuickStatCard
             icon={<Sun className="w-5 h-5" />}
-            label="Mi Energía"
+            label={t('myEnergy')}
             value={`${totalEnergy.toFixed(1)} kWh`}
             color="text-yellow-500"
           />
           <QuickStatCard
             icon={<Zap className="w-5 h-5" />}
-            label="Por Reclamar"
+            label={t('toClaim')}
             value={`${formatEther(totalClaimable)} tSYS`}
             color="text-green-500"
           />
           <QuickStatCard
             icon={<TrendingUp className="w-5 h-5" />}
-            label="Total Reclamado"
+            label={t('totalClaimed')}
             value={`${formatEther(totalClaimed)} tSYS`}
             color="text-accent"
           />
@@ -115,11 +117,11 @@ export default function DashboardPage() {
         <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold text-foreground mb-2">¡Comienza a invertir!</h3>
-              <p className="text-muted-foreground">Aún no tienes tokens de ningún proyecto. Explora los proyectos disponibles y haz tu primera inversión.</p>
+              <h3 className="text-xl font-bold text-foreground mb-2">{t('startInvesting')}</h3>
+              <p className="text-muted-foreground">{t('noTokensYet')}</p>
             </div>
             <Link href="/" className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-bold flex items-center gap-2 hover:shadow-lg transition-all whitespace-nowrap">
-              Ver Proyectos <ArrowRight className="w-5 h-5" />
+              {t('viewProjects')} <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -133,25 +135,25 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-6">
           <TrendingUp className="w-8 h-8 text-primary" />
           <h3 className="text-2xl font-bold text-foreground">
-            Beneficios de tu Inversión
+            {t('benefitsTitle')}
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BenefitItem
-            title="Energía Limpia"
-            description="Contribuyes a la generación de energía solar renovable"
+            title={t('benefit1Title')}
+            description={t('benefit1Desc')}
           />
           <BenefitItem
-            title="Transparencia Total"
-            description="Todas las métricas son verificables en blockchain"
+            title={t('benefit2Title')}
+            description={t('benefit2Desc')}
           />
           <BenefitItem
-            title="Retornos"
-            description="Recibe beneficios por la energía generada"
+            title={t('benefit3Title')}
+            description={t('benefit3Desc')}
           />
           <BenefitItem
-            title="Liquidez"
-            description="Tus tokens son transferibles en cualquier momento"
+            title={t('benefit4Title')}
+            description={t('benefit4Desc')}
           />
         </div>
       </div>

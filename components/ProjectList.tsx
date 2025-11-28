@@ -3,9 +3,11 @@ import { useNextProjectId } from '@/hooks/useSolarContract'
 import { ProjectCard } from './ProjectCard'
 import { Loader2, Sun, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 export function ProjectList() {
   const { nextProjectId, isLoading } = useNextProjectId()
+  const t = useTranslations('projectList')
 
   if (isLoading) {
     return (
@@ -42,16 +44,16 @@ export function ProjectList() {
           <Sun className="w-10 h-10 text-muted-foreground" />
         </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
-          No hay proyectos disponibles
+          {t('noProjects')}
         </h3>
         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-          Aún no se han creado proyectos solares. ¿Tienes un proyecto de energía solar? ¡Sé el primero en crearlo!
+          {t('noProjectsDesc')}
         </p>
         <Link
           href="/admin"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all"
         >
-          Crear Proyecto <ArrowRight className="w-5 h-5" />
+          {t('createProject')} <ArrowRight className="w-5 h-5" />
         </Link>
       </div>
     )
