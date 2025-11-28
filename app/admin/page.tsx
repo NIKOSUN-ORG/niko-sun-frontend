@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 
 export default function AdminPage() {
   const t = useTranslations('admin')
-  
+
   return (
     <div className="space-y-8">
       {/* Header */}

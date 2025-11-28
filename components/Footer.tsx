@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 
 export function Footer() {
   const t = useTranslations('footer')
-  
+
   return (
     <footer className="bg-card-bg border-t border-card-border py-12 mt-16">
       <div className="container mx-auto px-6">
