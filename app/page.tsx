@@ -1,4 +1,5 @@
 import { ProjectList } from "@/components/ProjectList"
+import { FAQ } from "@/components/FAQ"
 import { Sun, Zap, TrendingUp, Sparkles } from "lucide-react"
 import Image from "next/image"
 import { useTranslations } from 'next-intl'
@@ -90,6 +91,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQ />
     </div>
   )
 }

@@ -267,5 +267,69 @@
     "language": "Idioma",
     "spanish": "Español",
     "english": "English"
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Encuentra respuestas a las preguntas más comunes sobre la plataforma, tanto para inversores como para administradores de proyectos.",
+    "investorTitle": "Para Inversores",
+    "adminTitle": "Para Administradores de Proyectos",
+    "investor": {
+      "whatIs": {
+        "question": "¿Qué es Niko Sun?",
+        "answer": "Niko Sun es una plataforma descentralizada que permite invertir en proyectos de energía solar mediante tokens blockchain. Cada token representa una participación en un proyecto solar real, y los inversores reciben beneficios proporcionales a la energía generada por el proyecto."
+      },
+      "howToInvest": {
+        "question": "¿Cómo puedo invertir en un proyecto?",
+        "answer": "Para invertir, primero conecta tu wallet de Ethereum compatible (como MetaMask). Luego, explora los proyectos disponibles en la página principal, selecciona la cantidad de tokens que deseas comprar (respetando el mínimo de compra) y confirma la transacción. Los tokens se acreditarán automáticamente en tu wallet."
+      },
+      "whatAreTokens": {
+        "question": "¿Qué representan los tokens que compro?",
+        "answer": "Cada token representa una participación proporcional en un proyecto solar. Los tokens son del estándar ERC-1155, lo que significa que puedes poseer múltiples tokens de diferentes proyectos. Tu participación determina el porcentaje de los ingresos por energía que puedes reclamar."
+      },
+      "howRewards": {
+        "question": "¿Cómo funcionan las recompensas?",
+        "answer": "Cuando un proyecto genera energía y el administrador deposita los ingresos (revenue), estos se distribuyen proporcionalmente entre todos los poseedores de tokens. Tu recompensa se calcula basándose en la cantidad de tokens que posees respecto al total de tokens vendidos del proyecto."
+      },
+      "claimRewards": {
+        "question": "¿Cómo reclamo mis recompensas?",
+        "answer": "Puedes reclamar tus recompensas de dos formas: 1) Desde la tarjeta del proyecto, haciendo clic en 'Reclamar' cuando tengas recompensas disponibles. 2) Desde tu Portfolio (Mi Portfolio), donde puedes ver todas tus inversiones y reclamar todas las recompensas de una vez con el botón 'Reclamar Todo'."
+      },
+      "security": {
+        "question": "¿Es seguro invertir en la plataforma?",
+        "answer": "El contrato inteligente está construido con estándares de seguridad de OpenZeppelin, incluyendo protección contra reentrancy, sistema de pausado de emergencia y control de acceso basado en roles. Todas las transacciones son transparentes y verificables en la blockchain."
+      }
+    },
+    "admin": {
+      "createProject": {
+        "question": "¿Cómo creo un nuevo proyecto solar?",
+        "answer": "Ve al Panel de Administración y selecciona la pestaña 'Crear Proyecto'. Completa los campos: nombre del proyecto, suministro total de tokens, precio por token (en tSYS) y compra mínima. Al confirmar la transacción, el proyecto se creará y tú serás registrado como su creador."
+      },
+      "manageProject": {
+        "question": "¿Qué puedo hacer como creador de un proyecto?",
+        "answer": "Como creador puedes: 1) Activar o desactivar el proyecto (las compras solo están permitidas en proyectos activos). 2) Actualizar la energía generada (kWh). 3) Depositar revenue para distribuir entre los inversores. 4) Retirar el balance de ventas de tokens. 5) Transferir la propiedad del proyecto a otra dirección."
+      },
+      "depositRevenue": {
+        "question": "¿Cómo deposito revenue para mis inversores?",
+        "answer": "En el Panel de Administración, ve a la pestaña 'Revenue'. Selecciona tu proyecto, ingresa la cantidad en tSYS que deseas distribuir y opcionalmente la energía generada en kWh. Al confirmar, el revenue se distribuirá proporcionalmente y los inversores podrán reclamarlo."
+      },
+      "withdrawSales": {
+        "question": "¿Cómo retiro el dinero de las ventas de tokens?",
+        "answer": "En la pestaña 'Revenue' del Panel de Administración, encontrarás la sección 'Retirar Ventas'. Verás el balance disponible de tu proyecto. Ingresa la dirección del destinatario y la cantidad a retirar. Solo el creador del proyecto puede realizar esta operación."
+      },
+      "updateEnergy": {
+        "question": "¿Por qué debo actualizar la energía generada?",
+        "answer": "Actualizar la energía generada (en kWh) permite a los inversores ver el rendimiento real del proyecto solar. Esta métrica es importante para la transparencia y confianza. Puedes actualizarla desde la pestaña 'Gestionar Proyecto' ingresando los kWh adicionales generados."
+      },
+      "permissions": {
+        "question": "¿Cuáles son los diferentes roles y permisos?",
+        "answer": "Existen tres niveles: 1) Usuario normal: puede comprar tokens y reclamar recompensas. 2) Creador de proyecto: tiene control total sobre sus proyectos (gestión, revenue, retiros). 3) Owner del contrato: puede pausar/reanudar todo el contrato y crear proyectos en nombre de otros usuarios."
+      },
+      "transferOwnership": {
+        "question": "¿Puedo transferir la propiedad de mi proyecto?",
+        "answer": "Sí, como creador puedes transferir la propiedad de tu proyecto a otra dirección de Ethereum. Ve a 'Gestionar Proyecto', selecciona tu proyecto y en la sección 'Transferir Propiedad' ingresa la nueva dirección. Una vez confirmada la transacción, el nuevo propietario tendrá control total del proyecto."
+      }
+    },
+    "needMoreHelp": "¿Necesitas más ayuda?",
+    "needMoreHelpDesc": "Si tienes alguna pregunta adicional que no está cubierta aquí, no dudes en contactar con el equipo de Niko Sun a través de nuestros canales oficiales."
   }
 }
