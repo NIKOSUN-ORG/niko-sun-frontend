@@ -1,10 +1,11 @@
 "use client"
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple, useProjectData } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
+import { getErrorMessage, isUserCausedError } from '@/utils/parseError'
 import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight, Zap } from 'lucide-react'
 
 export function UserBalance() {
@@ -13,6 +14,8 @@ export function UserBalance() {
   const { showToast } = useToast()
   const t = useTranslations('portfolio')
   const tToast = useTranslations('toast')
+  const tErrors = useTranslations('errors')
+  const [claimFormError, setClaimFormError] = useState<string | null>(null)
 
   // Los IDs de proyectos empiezan en 1
   const projectIds = Array.from({ length: nextProjectId - 1 }, (_, i) => i + 1)
@@ -23,14 +26,19 @@ export function UserBalance() {
   useEffect(() => {
     if (claimSuccess) {
       showToast(tToast('claimSuccess'), 'success')
+      setClaimFormError(null)
     }
   }, [claimSuccess, showToast, tToast])
 
   useEffect(() => {
     if (claimError) {
-      showToast(tToast('claimError'), 'error')
+      const errorMessage = getErrorMessage(claimError, tErrors)
+      if (!isUserCausedError(claimError)) {
+        showToast(errorMessage, 'error')
+      }
+      setClaimFormError(errorMessage)
     }
-  }, [claimError, showToast, tToast])
+  }, [claimError, showToast, tErrors])
 
   if (!isConnected || !address) {
     return (
@@ -113,6 +121,9 @@ export function UserBalance() {
           </div>
           {claimSuccess && (
             <p className="mt-3 text-sm text-green-500 text-center">{t('claimSuccessMessage')}</p>
+          )}
+          {claimFormError && !claimSuccess && (
+            <p className="mt-3 text-sm text-red-500 text-center">{claimFormError}</p>
           )}
         </div>
       )}

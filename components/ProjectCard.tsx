@@ -5,6 +5,7 @@ import { formatEther } from 'viem'
 import { useMintTokens, useProjectData, useClaimableAmount, useClaimRevenue } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
+import { getErrorMessage, isUserCausedError } from '@/utils/parseError'
 import { Sun, Zap, ShoppingCart, Loader2, Gift, CheckCircle, TrendingUp, Coins } from 'lucide-react'
 
 interface ProjectCardProps {
@@ -19,35 +20,48 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
   const { claimRevenue, isPending: isClaiming, isSuccess: claimSuccess, error: claimError } = useClaimRevenue()
   const { showToast } = useToast()
   const t = useTranslations('projectCard')
+  const tErrors = useTranslations('errors')
   const [amount, setAmount] = useState(1)
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   // Toast notifications
   useEffect(() => {
     if (isSuccess) {
       showToast(t('buySuccess', { amount }), 'success')
       setShowSuccessAnimation(true)
+      setFormError(null)
       setTimeout(() => setShowSuccessAnimation(false), 2000)
     }
   }, [isSuccess, amount, showToast, t])
 
   useEffect(() => {
     if (error) {
-      showToast(error.message || t('buyError'), 'error')
+      const errorMessage = getErrorMessage(error, tErrors)
+      // Solo mostrar toast si no fue cancelado por el usuario
+      if (!isUserCausedError(error)) {
+        showToast(errorMessage, 'error')
+      }
+      setFormError(errorMessage)
     }
-  }, [error, showToast, t])
+  }, [error, showToast, tErrors])
 
   useEffect(() => {
     if (claimSuccess) {
       showToast(t('claimSuccess'), 'success')
+      setFormError(null)
     }
   }, [claimSuccess, showToast, t])
 
   useEffect(() => {
     if (claimError) {
-      showToast(t('claimError'), 'error')
+      const errorMessage = getErrorMessage(claimError, tErrors)
+      if (!isUserCausedError(claimError)) {
+        showToast(errorMessage, 'error')
+      }
+      setFormError(errorMessage)
     }
-  }, [claimError, showToast, t])
+  }, [claimError, showToast, tErrors])
 
   if (isLoading) {
     return (
@@ -216,6 +230,13 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
               <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <p className="text-sm text-primary font-medium text-center">
                   {t('buySuccess', { amount })}
+                </p>
+              </div>
+            )}
+            {formError && !isSuccess && (
+              <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                <p className="text-sm text-red-500 font-medium text-center">
+                  {formError}
                 </p>
               </div>
             )}

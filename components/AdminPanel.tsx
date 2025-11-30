@@ -19,6 +19,7 @@ import {
 } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
+import { getErrorMessage, isUserCausedError } from '@/utils/parseError'
 import {
   Settings,
   Plus,
@@ -145,9 +146,11 @@ function CreateProjectForm() {
   const [totalSupply, setTotalSupply] = useState('')
   const [price, setPrice] = useState('')
   const [minPurchase, setMinPurchase] = useState('1')
+  const [formError, setFormError] = useState<string | null>(null)
   const { createProject, isPending, isSuccess, error } = useCreateProject()
   const { showToast } = useToast()
   const t = useTranslations('createProject')
+  const tErrors = useTranslations('errors')
 
   useEffect(() => {
     if (isSuccess) {
@@ -156,14 +159,19 @@ function CreateProjectForm() {
       setTotalSupply('')
       setPrice('')
       setMinPurchase('1')
+      setFormError(null)
     }
   }, [isSuccess, name, showToast, t])
 
   useEffect(() => {
     if (error) {
-      showToast(t('error', { message: error.message }), 'error')
+      const errorMessage = getErrorMessage(error, tErrors)
+      if (!isUserCausedError(error)) {
+        showToast(errorMessage, 'error')
+      }
+      setFormError(errorMessage)
     }
-  }, [error, showToast, t])
+  }, [error, showToast, tErrors])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -260,11 +268,11 @@ function CreateProjectForm() {
         </div>
       )}
 
-      {error && (
+      {formError && !isSuccess && (
         <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
           <XCircle className="w-5 h-5 text-red-500" />
           <p className="text-sm text-red-500 font-medium">
-            {t('error', { message: error.message })}
+            {formError}
           </p>
         </div>
       )}
@@ -277,8 +285,12 @@ function ManageProjectForm() {
   const [projectId, setProjectId] = useState('')
   const [energyDelta, setEnergyDelta] = useState('')
   const [newCreator, setNewCreator] = useState('')
+  const [updateFormError, setUpdateFormError] = useState<string | null>(null)
+  const [transferFormError, setTransferFormError] = useState<string | null>(null)
   const t = useTranslations('manageProject')
   const tCommon = useTranslations('common')
+  const tErrors = useTranslations('errors')
+  const { showToast } = useToast()
 
   const { updateEnergy, isPending: isUpdating, isSuccess: updateSuccess, error: updateError } = useUpdateEnergy()
   const { setProjectStatus, isPending: isToggling, isSuccess: toggleSuccess, error: toggleError } = useSetProjectStatus()
@@ -291,9 +303,56 @@ function ManageProjectForm() {
   const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
   const canManage = isCreator || isOwner
 
+  // Handle update energy errors
+  useEffect(() => {
+    if (updateSuccess) {
+      setUpdateFormError(null)
+      setEnergyDelta('')
+    }
+  }, [updateSuccess])
+
+  useEffect(() => {
+    if (updateError) {
+      const errorMessage = getErrorMessage(updateError, tErrors)
+      if (!isUserCausedError(updateError)) {
+        showToast(errorMessage, 'error')
+      }
+      setUpdateFormError(errorMessage)
+    }
+  }, [updateError, tErrors, showToast])
+
+  // Handle transfer errors
+  useEffect(() => {
+    if (transferSuccess) {
+      setTransferFormError(null)
+      setNewCreator('')
+    }
+  }, [transferSuccess])
+
+  useEffect(() => {
+    if (transferError) {
+      const errorMessage = getErrorMessage(transferError, tErrors)
+      if (!isUserCausedError(transferError)) {
+        showToast(errorMessage, 'error')
+      }
+      setTransferFormError(errorMessage)
+    }
+  }, [transferError, tErrors, showToast])
+
+  // Handle toggle status errors
+  useEffect(() => {
+    if (toggleError) {
+      const errorMessage = getErrorMessage(toggleError, tErrors)
+      if (!isUserCausedError(toggleError)) {
+        showToast(errorMessage, 'error')
+      }
+    }
+  }, [toggleError, tErrors, showToast])
+
   const handleUpdateEnergy = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectId || !energyDelta) return
+    setUpdateFormError(null)
     updateEnergy(Number(projectId), Number(energyDelta))
   }
 
@@ -305,6 +364,7 @@ function ManageProjectForm() {
   const handleTransferOwnership = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectId || !newCreator) return
+    setTransferFormError(null)
     transferProjectOwnership(Number(projectId), newCreator as `0x${string}`)
   }
 
@@ -378,10 +438,10 @@ function ManageProjectForm() {
                 </p>
               </div>
             )}
-            {updateError && (
+            {updateFormError && !updateSuccess && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                 <p className="text-sm text-red-500 font-medium text-center">
-                  Error: {updateError.message}
+                  {updateFormError}
                 </p>
               </div>
             )}
@@ -470,10 +530,10 @@ function ManageProjectForm() {
                   </p>
                 </div>
               )}
-              {transferError && (
+              {transferFormError && !transferSuccess && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                   <p className="text-sm text-red-500 font-medium text-center">
-                    Error: {transferError.message}
+                    {transferFormError}
                   </p>
                 </div>
               )}
@@ -500,7 +560,11 @@ function RevenueForm() {
   const [energyKwh, setEnergyKwh] = useState('0')
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [recipient, setRecipient] = useState('')
+  const [depositFormError, setDepositFormError] = useState<string | null>(null)
+  const [withdrawFormError, setWithdrawFormError] = useState<string | null>(null)
   const t = useTranslations('revenue')
+  const tErrors = useTranslations('errors')
+  const { showToast } = useToast()
 
   const { depositRevenue, isPending: isDepositing, isSuccess: depositSuccess, error: depositError } = useDepositRevenue()
   const { withdrawSales, isPending: isWithdrawing, isSuccess: withdrawSuccess, error: withdrawError } = useWithdrawSales()
@@ -514,9 +578,48 @@ function RevenueForm() {
   const canDeposit = isCreator || isOwner
   const canWithdraw = isCreator
 
+  // Handle deposit errors
+  useEffect(() => {
+    if (depositSuccess) {
+      setDepositFormError(null)
+      setRevenueAmount('')
+      setEnergyKwh('0')
+    }
+  }, [depositSuccess])
+
+  useEffect(() => {
+    if (depositError) {
+      const errorMessage = getErrorMessage(depositError, tErrors)
+      if (!isUserCausedError(depositError)) {
+        showToast(errorMessage, 'error')
+      }
+      setDepositFormError(errorMessage)
+    }
+  }, [depositError, tErrors, showToast])
+
+  // Handle withdraw errors
+  useEffect(() => {
+    if (withdrawSuccess) {
+      setWithdrawFormError(null)
+      setWithdrawAmount('')
+      setRecipient('')
+    }
+  }, [withdrawSuccess])
+
+  useEffect(() => {
+    if (withdrawError) {
+      const errorMessage = getErrorMessage(withdrawError, tErrors)
+      if (!isUserCausedError(withdrawError)) {
+        showToast(errorMessage, 'error')
+      }
+      setWithdrawFormError(errorMessage)
+    }
+  }, [withdrawError, tErrors, showToast])
+
   const handleDepositRevenue = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectId || !revenueAmount) return
+    setDepositFormError(null)
     const amountWei = parseEther(revenueAmount)
     depositRevenue(Number(projectId), Number(energyKwh), amountWei)
   }
@@ -524,6 +627,7 @@ function RevenueForm() {
   const handleWithdrawSales = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectId || !withdrawAmount || !recipient) return
+    setWithdrawFormError(null)
     const amountWei = parseEther(withdrawAmount)
     withdrawSales(Number(projectId), recipient as `0x${string}`, amountWei)
   }
@@ -611,10 +715,10 @@ function RevenueForm() {
               </p>
             </div>
           )}
-          {depositError && (
+          {depositFormError && !depositSuccess && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
               <p className="text-sm text-red-500 font-medium text-center">
-                {t('depositError')}: {depositError.message}
+                {depositFormError}
               </p>
             </div>
           )}
@@ -683,10 +787,10 @@ function RevenueForm() {
               </p>
             </div>
           )}
-          {withdrawError && (
+          {withdrawFormError && !withdrawSuccess && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
               <p className="text-sm text-red-500 font-medium text-center">
-                {t('withdrawError')}: {withdrawError.message}
+                {withdrawFormError}
               </p>
             </div>
           )}
@@ -708,7 +812,26 @@ function OwnerPanel() {
   const { pause, unpause, isPending, isSuccess, error } = usePauseContract()
   const { isPaused } = useContractPaused()
   const { balance } = useContractBalance()
+  const [formError, setFormError] = useState<string | null>(null)
   const t = useTranslations('ownerPanel')
+  const tErrors = useTranslations('errors')
+  const { showToast } = useToast()
+
+  useEffect(() => {
+    if (isSuccess) {
+      setFormError(null)
+    }
+  }, [isSuccess])
+
+  useEffect(() => {
+    if (error) {
+      const errorMessage = getErrorMessage(error, tErrors)
+      if (!isUserCausedError(error)) {
+        showToast(errorMessage, 'error')
+      }
+      setFormError(errorMessage)
+    }
+  }, [error, tErrors, showToast])
 
   return (
     <div className="space-y-6">
@@ -763,11 +886,11 @@ function OwnerPanel() {
           </div>
         )}
 
-        {error && (
+        {formError && !isSuccess && (
           <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
             <XCircle className="w-5 h-5 text-red-500" />
             <p className="text-sm text-red-500 font-medium">
-              Error: {error.message}
+              {formError}
             </p>
           </div>
         )}
