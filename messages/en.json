@@ -327,7 +327,7 @@
       },
       "howToInvest": {
         "question": "How can I invest in a project?",
-        "answer": "To invest, first connect your compatible Ethereum wallet (such as MetaMask). Then, explore the available projects on the main page, select the number of tokens you want to buy (respecting the minimum purchase), and confirm the transaction. The tokens will be automatically credited to your wallet."
+        "answer": "To invest, first connect your compatible wallet (such as MetaMask) and make sure you're on the Syscoin Testnet network. Then, explore the available projects on the main page, select the number of tokens you want to buy (respecting the minimum purchase), and confirm the transaction. The tokens will be automatically credited to your wallet."
       },
       "whatAreTokens": {
         "question": "What do the tokens I buy represent?",
@@ -373,7 +373,7 @@
       },
       "transferOwnership": {
         "question": "Can I transfer ownership of my project?",
-        "answer": "Yes, as a creator you can transfer ownership of your project to another Ethereum address. Go to 'Manage Project', select your project, and in the 'Transfer Ownership' section enter the new address. Once the transaction is confirmed, the new owner will have full control of the project."
+        "answer": "Yes, as a creator you can transfer ownership of your project to another address. Go to 'Manage Project', select your project, and in the 'Transfer Ownership' section enter the new address. Once the transaction is confirmed, the new owner will have full control of the project."
       }
     },
     "needMoreHelp": "Need more help?",
