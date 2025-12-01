@@ -1,7 +1,7 @@
 import { Abi, Address } from "viem"
 
 // IMPORTANTE: Actualiza esta dirección con la dirección de tu contrato desplegado
-export const SOLAR_TOKEN_ADDRESS = "0xFcE8D6510898854508C8f8d494e5595eD0a40184" as Address
+export const SOLAR_TOKEN_ADDRESS = "0x6e9fd4C2D15672594f4Eb4076d67c4D77352A512" as Address
 
 export const SOLAR_TOKEN_ABI = [
         {
@@ -77,19 +77,6 @@ export const SOLAR_TOKEN_ABI = [
         {
             "inputs": [
                 {
-                    "internalType": "uint256[]",
-                    "name": "projectIds",
-                    "type": "uint256[]"
-                }
-            ],
-            "name": "claimMultipleOptimized",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
                     "internalType": "uint256",
                     "name": "projectId",
                     "type": "uint256"
@@ -113,9 +100,9 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint96"
                 },
                 {
-                    "internalType": "uint64",
+                    "internalType": "uint128",
                     "name": "priceWei",
-                    "type": "uint64"
+                    "type": "uint128"
                 },
                 {
                     "internalType": "uint96",
@@ -152,9 +139,9 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint96"
                 },
                 {
-                    "internalType": "uint64",
+                    "internalType": "uint128",
                     "name": "priceWei",
-                    "type": "uint64"
+                    "type": "uint128"
                 },
                 {
                     "internalType": "uint96",
@@ -264,6 +251,72 @@ export const SOLAR_TOKEN_ABI = [
         {
             "inputs": [
                 {
+                    "internalType": "address",
+                    "name": "investor",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256[]",
+                    "name": "projectIds",
+                    "type": "uint256[]"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "offset",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "limit",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getInvestorPortfolioPaginated",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "projectId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "tokenBalance",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "claimableAmount",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalClaimed",
+                            "type": "uint256"
+                        }
+                    ],
+                    "internalType": "struct SolarTokenV3Optimized.InvestorPosition[]",
+                    "name": "positions",
+                    "type": "tuple[]"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "total",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "hasMore",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
                     "internalType": "uint256",
                     "name": "projectId",
                     "type": "uint256"
@@ -294,9 +347,9 @@ export const SOLAR_TOKEN_ABI = [
                             "type": "uint96"
                         },
                         {
-                            "internalType": "uint64",
+                            "internalType": "uint128",
                             "name": "priceWei",
-                            "type": "uint64"
+                            "type": "uint128"
                         },
                         {
                             "internalType": "uint64",
@@ -314,9 +367,9 @@ export const SOLAR_TOKEN_ABI = [
                             "type": "uint128"
                         },
                         {
-                            "internalType": "uint56",
+                            "internalType": "uint48",
                             "name": "reserved1",
-                            "type": "uint56"
+                            "type": "uint48"
                         },
                         {
                             "internalType": "uint128",
@@ -410,6 +463,96 @@ export const SOLAR_TOKEN_ABI = [
                     "internalType": "uint256",
                     "name": "",
                     "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getTotalSalesBalance",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "getUserProjects",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "",
+                    "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "getUserProjectsCount",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "offset",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "limit",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getUserProjectsPaginated",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "projectIds",
+                    "type": "uint256[]"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "total",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "hasMore",
+                    "type": "bool"
                 }
             ],
             "stateMutability": "view",
@@ -620,9 +763,9 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint96"
                 },
                 {
-                    "internalType": "uint64",
+                    "internalType": "uint128",
                     "name": "priceWei",
-                    "type": "uint64"
+                    "type": "uint128"
                 },
                 {
                     "internalType": "uint64",
@@ -640,9 +783,9 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint128"
                 },
                 {
-                    "internalType": "uint56",
+                    "internalType": "uint48",
                     "name": "reserved1",
-                    "type": "uint56"
+                    "type": "uint48"
                 },
                 {
                     "internalType": "uint128",
@@ -666,6 +809,19 @@ export const SOLAR_TOKEN_ABI = [
         {
             "inputs": [],
             "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "recipient",
+                    "type": "address"
+                }
+            ],
+            "name": "rescueDust",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -775,6 +931,29 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint256"
                 },
                 {
+                    "internalType": "uint128",
+                    "name": "newTotalEnergy",
+                    "type": "uint128"
+                },
+                {
+                    "internalType": "string",
+                    "name": "reason",
+                    "type": "string"
+                }
+            ],
+            "name": "setEnergy",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "projectId",
+                    "type": "uint256"
+                },
+                {
                     "internalType": "bool",
                     "name": "active",
                     "type": "bool"
@@ -855,6 +1034,29 @@ export const SOLAR_TOKEN_ABI = [
                 }
             ],
             "name": "transferProjectOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "projectId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transferTokens",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -980,6 +1182,68 @@ export const SOLAR_TOKEN_ABI = [
             "inputs": [
                 {
                     "indexed": true,
+                    "internalType": "address",
+                    "name": "recipient",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint64",
+                    "name": "timestamp",
+                    "type": "uint64"
+                }
+            ],
+            "name": "DustRescued",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "projectId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint128",
+                    "name": "previousEnergy",
+                    "type": "uint128"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint128",
+                    "name": "newEnergy",
+                    "type": "uint128"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "reason",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint64",
+                    "name": "timestamp",
+                    "type": "uint64"
+                }
+            ],
+            "name": "EnergySet",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
                     "internalType": "uint256",
                     "name": "projectId",
                     "type": "uint256"
@@ -1067,9 +1331,9 @@ export const SOLAR_TOKEN_ABI = [
                 },
                 {
                     "indexed": false,
-                    "internalType": "uint64",
+                    "internalType": "uint128",
                     "name": "priceWei",
-                    "type": "uint64"
+                    "type": "uint128"
                 },
                 {
                     "indexed": false,
@@ -1128,7 +1392,7 @@ export const SOLAR_TOKEN_ABI = [
                     "type": "uint256"
                 },
                 {
-                    "indexed": false,
+                    "indexed": true,
                     "internalType": "bool",
                     "name": "active",
                     "type": "bool"
@@ -1334,6 +1598,43 @@ export const SOLAR_TOKEN_ABI = [
                 {
                     "indexed": true,
                     "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "projectId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint64",
+                    "name": "timestamp",
+                    "type": "uint64"
+                }
+            ],
+            "name": "TransferExecuted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
                     "name": "operator",
                     "type": "address"
                 },
@@ -1396,6 +1697,11 @@ export const SOLAR_TOKEN_ABI = [
             ],
             "name": "Unpaused",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "BatchSizeTooLarge",
+            "type": "error"
         },
         {
             "inputs": [
@@ -1625,6 +1931,11 @@ export const SOLAR_TOKEN_ABI = [
         {
             "inputs": [],
             "name": "RefundFailed",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "RewardIncreaseTooSmall",
             "type": "error"
         },
         {
