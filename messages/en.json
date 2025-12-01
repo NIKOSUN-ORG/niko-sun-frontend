@@ -105,7 +105,14 @@
     "projects": "project(s)",
     "noProjects": "No projects yet",
     "connectWalletDescription": "To view your tokens and investments, first connect your wallet by clicking the button above",
-    "claimSuccessMessage": "All rewards claimed successfully!"
+    "claimSuccessMessage": "All rewards claimed successfully!",
+    "transferTokens": "Transfer Tokens",
+    "recipientAddress": "Recipient address (0x...)",
+    "amount": "Amount",
+    "transfer": "Transfer",
+    "transferring": "Transferring...",
+    "transferSuccess": "Tokens transferred successfully!",
+    "invalidAmount": "Amount must be greater than 0 and less than or equal to your balance"
   },
   "toast": {
     "claimSuccess": "All rewards claimed successfully!",
@@ -246,7 +253,14 @@
     "transferOwnership": "Transfer Ownership",
     "newCreator": "New creator address",
     "transferring": "Transferring...",
-    "transferButton": "Transfer"
+    "transferButton": "Transfer",
+    "myProjects": "My Projects",
+    "noProjectsCreated": "You haven't created any projects yet",
+    "createFirstProject": "Go to the 'Create' tab to create your first project",
+    "projectsCount": "You have {count} project(s) created",
+    "project": "Project",
+    "tokensSold": "tokens sold",
+    "changeProject": "Change"
   },
   "revenue": {
     "depositRevenue": "Deposit Revenue",
@@ -277,9 +291,25 @@
     "pausing": "Pausing...",
     "resuming": "Resuming...",
     "contractBalance": "Contract Balance",
+    "totalSalesBalance": "Total Sales Balance",
     "createForOthers": "Create Project for Another",
     "creatorAddress": "Creator address",
-    "createFor": "Create for {address}"
+    "createFor": "Create for {address}",
+    "setEnergy": "Set Energy",
+    "setEnergyDesc": "Correct the total energy of a project (for corrections only)",
+    "projectId": "Project ID",
+    "newTotalEnergy": "New Total Energy (kWh)",
+    "reason": "Correction reason",
+    "reasonPlaceholder": "E.g: Measurement error correction",
+    "setEnergyButton": "Set Energy",
+    "settingEnergy": "Setting...",
+    "setEnergySuccess": "Energy set successfully!",
+    "rescueDust": "Rescue Funds",
+    "rescueDustDesc": "Recover unassigned funds from the contract (dust)",
+    "recipient": "Recipient address",
+    "rescueDustButton": "Rescue Funds",
+    "rescuingDust": "Rescuing...",
+    "rescueDustSuccess": "Funds rescued successfully!"
   },
   "metrics": {
     "title": "Metrics and Statistics",

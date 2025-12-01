@@ -105,7 +105,14 @@
     "projects": "proyecto(s)",
     "noProjects": "No hay proyectos aún",
     "connectWalletDescription": "Para ver tus tokens e inversiones, primero conecta tu wallet haciendo clic en el botón de arriba",
-    "claimSuccessMessage": "¡Todas las recompensas reclamadas exitosamente!"
+    "claimSuccessMessage": "¡Todas las recompensas reclamadas exitosamente!",
+    "transferTokens": "Transferir Tokens",
+    "recipientAddress": "Dirección del destinatario (0x...)",
+    "amount": "Cantidad",
+    "transfer": "Transferir",
+    "transferring": "Transfiriendo...",
+    "transferSuccess": "¡Tokens transferidos exitosamente!",
+    "invalidAmount": "La cantidad debe ser mayor a 0 y menor o igual a tu saldo"
   },
   "toast": {
     "claimSuccess": "¡Todas las recompensas reclamadas exitosamente!",
@@ -246,7 +253,14 @@
     "transferOwnership": "Transferir Propiedad",
     "newCreator": "Nueva dirección del creador",
     "transferring": "Transfiriendo...",
-    "transferButton": "Transferir"
+    "transferButton": "Transferir",
+    "myProjects": "Mis Proyectos",
+    "noProjectsCreated": "No has creado ningún proyecto aún",
+    "createFirstProject": "Ve a la pestaña 'Crear' para crear tu primer proyecto",
+    "projectsCount": "Tienes {count} proyecto(s) creado(s)",
+    "project": "Proyecto",
+    "tokensSold": "tokens vendidos",
+    "changeProject": "Cambiar"
   },
   "revenue": {
     "depositRevenue": "Depositar Revenue",
@@ -277,9 +291,25 @@
     "pausing": "Pausando...",
     "resuming": "Reanudando...",
     "contractBalance": "Balance del Contrato",
+    "totalSalesBalance": "Balance Total de Ventas",
     "createForOthers": "Crear Proyecto para Otro",
     "creatorAddress": "Dirección del creador",
-    "createFor": "Crear para {address}"
+    "createFor": "Crear para {address}",
+    "setEnergy": "Establecer Energía",
+    "setEnergyDesc": "Corrige la energía total de un proyecto (solo para correcciones)",
+    "projectId": "ID del Proyecto",
+    "newTotalEnergy": "Nueva Energía Total (kWh)",
+    "reason": "Motivo de la corrección",
+    "reasonPlaceholder": "Ej: Corrección de error en medición",
+    "setEnergyButton": "Establecer Energía",
+    "settingEnergy": "Estableciendo...",
+    "setEnergySuccess": "¡Energía establecida correctamente!",
+    "rescueDust": "Rescatar Fondos",
+    "rescueDustDesc": "Recuperar fondos sin asignar del contrato (polvo)",
+    "recipient": "Dirección destinatario",
+    "rescueDustButton": "Rescatar Fondos",
+    "rescuingDust": "Rescatando...",
+    "rescueDustSuccess": "¡Fondos rescatados correctamente!"
   },
   "metrics": {
     "title": "Métricas y Estadísticas",

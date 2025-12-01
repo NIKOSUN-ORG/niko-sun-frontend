@@ -16,6 +16,12 @@ import {
   useProjectData,
   useIsProjectCreator,
   useTransferProjectOwnership,
+  useSetEnergy,
+  useRescueDust,
+  useTotalSalesBalance,
+  useCreatorProjects,
+  useMultipleProjectsData,
+  useNextProjectId,
 } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
@@ -33,7 +39,12 @@ import {
   Pause,
   Play,
   Send,
-  User
+  User,
+  AlertTriangle,
+  Wallet,
+  List,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 
 export function AdminPanel() {
@@ -282,7 +293,8 @@ function CreateProjectForm() {
 
 function ManageProjectForm() {
   const { address } = useAccount()
-  const [projectId, setProjectId] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [showProjectList, setShowProjectList] = useState(true)
   const [energyDelta, setEnergyDelta] = useState('')
   const [newCreator, setNewCreator] = useState('')
   const [updateFormError, setUpdateFormError] = useState<string | null>(null)
@@ -292,15 +304,20 @@ function ManageProjectForm() {
   const tErrors = useTranslations('errors')
   const { showToast } = useToast()
 
+  // Obtener proyectos del creador
+  const { projectIds: creatorProjectIds, isLoading: isLoadingProjects, totalProjects } = useCreatorProjects(address)
+  const { projects: creatorProjectsData, isLoading: isLoadingProjectsData } = useMultipleProjectsData(creatorProjectIds)
+
+  const { owner } = useContractOwner()
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
+
   const { updateEnergy, isPending: isUpdating, isSuccess: updateSuccess, error: updateError } = useUpdateEnergy()
   const { setProjectStatus, isPending: isToggling, isSuccess: toggleSuccess, error: toggleError } = useSetProjectStatus()
   const { transferProjectOwnership, isPending: isTransferring, isSuccess: transferSuccess, error: transferError } = useTransferProjectOwnership()
 
-  const { project } = useProjectData(projectId ? Number(projectId) : undefined)
-  const { isCreator } = useIsProjectCreator(projectId ? Number(projectId) : 0, address)
-  const { owner } = useContractOwner()
-
-  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
+  // Obtener datos del proyecto seleccionado
+  const selectedProject = creatorProjectsData.find(p => p?.id === selectedProjectId)
+  const { isCreator } = useIsProjectCreator(selectedProjectId ?? 0, address)
   const canManage = isCreator || isOwner
 
   // Handle update energy errors
@@ -351,47 +368,156 @@ function ManageProjectForm() {
 
   const handleUpdateEnergy = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectId || !energyDelta) return
+    if (!selectedProjectId || !energyDelta) return
     setUpdateFormError(null)
-    updateEnergy(Number(projectId), Number(energyDelta))
+    updateEnergy(selectedProjectId, Number(energyDelta))
   }
 
   const handleToggleStatus = (active: boolean) => {
-    if (!projectId) return
-    setProjectStatus(Number(projectId), active)
+    if (!selectedProjectId) return
+    setProjectStatus(selectedProjectId, active)
   }
 
   const handleTransferOwnership = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectId || !newCreator) return
+    if (!selectedProjectId || !newCreator) return
     setTransferFormError(null)
-    transferProjectOwnership(Number(projectId), newCreator as `0x${string}`)
+    transferProjectOwnership(selectedProjectId, newCreator as `0x${string}`)
+  }
+
+  const handleSelectProject = (projectId: number) => {
+    setSelectedProjectId(projectId)
+    setShowProjectList(false)
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold text-foreground mb-2">
-          {t('projectId')}
-        </label>
-        <input
-          type="number"
-          value={projectId}
-          onChange={(e) => setProjectId(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-          placeholder="1"
-          min="1"
-        />
-        {projectId && project && (
-          <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
-            <p><span className="font-semibold">{t('status')}:</span> {project.active ? `✅ ${tCommon('active')}` : `❌ ${tCommon('inactive')}`}</p>
-            <p><span className="font-semibold">{t('creator')}:</span> {project.creator.slice(0, 8)}...{project.creator.slice(-6)}</p>
-            <p><span className="font-semibold">:</span> {canManage ? `✅ ${t('youAreCreator')}` : `❌ ${t('notCreator')}`}</p>
+      {/* Lista de proyectos del creador */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+            <List className="w-5 h-5 text-primary" />
+            {t('myProjects')}
+          </h4>
+          <button
+            onClick={() => setShowProjectList(!showProjectList)}
+            className="p-2 rounded-lg hover:bg-muted/10 transition-colors"
+          >
+            {showProjectList ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {isLoadingProjects || isLoadingProjectsData ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">{tCommon('loading')}</span>
           </div>
+        ) : creatorProjectIds.length === 0 ? (
+          <div className="p-6 rounded-lg bg-muted/10 border border-border text-center">
+            <p className="text-muted-foreground">{t('noProjectsCreated')}</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('createFirstProject')}</p>
+          </div>
+        ) : (
+          <>
+            {/* Resumen */}
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+              <p className="text-sm font-medium text-primary">
+                {t('projectsCount', { count: creatorProjectIds.length })}
+              </p>
+            </div>
+
+            {/* Lista de proyectos */}
+            {showProjectList && (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {creatorProjectsData.map((projectData) => {
+                  if (!projectData) return null
+                  const isSelected = selectedProjectId === projectData.id
+                  return (
+                    <button
+                      key={projectData.id}
+                      onClick={() => handleSelectProject(projectData.id)}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${isSelected
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/5'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">#{projectData.id}</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {projectData.metadata.name || `${t('project')} #${projectData.id}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {Number(projectData.project.minted)}/{Number(projectData.project.totalSupply)} {t('tokensSold')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${projectData.project.active
+                              ? 'bg-green-500/20 text-green-500'
+                              : 'bg-red-500/20 text-red-500'
+                            }`}>
+                            {projectData.project.active ? tCommon('active') : tCommon('inactive')}
+                          </span>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {Number(projectData.project.totalEnergyKwh).toLocaleString()} kWh
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {canManage && projectId && (
+      {/* Proyecto seleccionado */}
+      {selectedProjectId && selectedProject && (
+        <div className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/30">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                <span className="text-white font-bold">#{selectedProjectId}</span>
+              </div>
+              <div>
+                <p className="font-bold text-foreground text-lg">
+                  {selectedProject.metadata.name || `${t('project')} #${selectedProjectId}`}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProject.project.active ? `✅ ${tCommon('active')}` : `❌ ${tCommon('inactive')}`}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setSelectedProjectId(null); setShowProjectList(true) }}
+              className="px-3 py-1 rounded-lg text-sm bg-muted/20 hover:bg-muted/30 transition-colors"
+            >
+              {t('changeProject')}
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">{t('tokensSold')}</p>
+              <p className="font-bold">{Number(selectedProject.project.minted)}/{Number(selectedProject.project.totalSupply)}</p>
+            </div>
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">{t('energy')}</p>
+              <p className="font-bold">{Number(selectedProject.project.totalEnergyKwh).toLocaleString()} kWh</p>
+            </div>
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">{t('revenue')}</p>
+              <p className="font-bold">{formatEther(selectedProject.project.totalRevenue)} tSYS</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canManage && selectedProjectId && (
         <>
           {/* Actualizar Energía */}
           <form onSubmit={handleUpdateEnergy} className="space-y-4 border-t border-border pt-6">
@@ -458,7 +584,7 @@ function ManageProjectForm() {
               <div className="flex gap-4">
                 <button
                   onClick={() => handleToggleStatus(true)}
-                  disabled={isToggling || project?.active}
+                  disabled={isToggling || selectedProject?.project.active}
                   className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Play className="w-5 h-5" />
@@ -466,7 +592,7 @@ function ManageProjectForm() {
                 </button>
                 <button
                   onClick={() => handleToggleStatus(false)}
-                  disabled={isToggling || !project?.active}
+                  disabled={isToggling || !selectedProject?.project.active}
                   className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Pause className="w-5 h-5" />
@@ -541,21 +667,14 @@ function ManageProjectForm() {
           )}
         </>
       )}
-
-      {!canManage && projectId && (
-        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-          <p className="text-sm text-yellow-600 font-medium text-center">
-            {t('notCreator')}
-          </p>
-        </div>
-      )}
     </div>
   )
 }
 
 function RevenueForm() {
   const { address } = useAccount()
-  const [projectId, setProjectId] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [showProjectList, setShowProjectList] = useState(true)
   const [revenueAmount, setRevenueAmount] = useState('')
   const [energyKwh, setEnergyKwh] = useState('0')
   const [withdrawAmount, setWithdrawAmount] = useState('')
@@ -563,18 +682,26 @@ function RevenueForm() {
   const [depositFormError, setDepositFormError] = useState<string | null>(null)
   const [withdrawFormError, setWithdrawFormError] = useState<string | null>(null)
   const t = useTranslations('revenue')
+  const tCommon = useTranslations('common')
+  const tManage = useTranslations('manageProject')
   const tErrors = useTranslations('errors')
   const { showToast } = useToast()
+
+  // Obtener proyectos del creador
+  const { projectIds: creatorProjectIds, isLoading: isLoadingProjects } = useCreatorProjects(address)
+  const { projects: creatorProjectsData, isLoading: isLoadingProjectsData } = useMultipleProjectsData(creatorProjectIds)
+
+  const { owner } = useContractOwner()
+  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
   const { depositRevenue, isPending: isDepositing, isSuccess: depositSuccess, error: depositError } = useDepositRevenue()
   const { withdrawSales, isPending: isWithdrawing, isSuccess: withdrawSuccess, error: withdrawError } = useWithdrawSales()
 
-  const { project } = useProjectData(projectId ? Number(projectId) : undefined)
-  const { salesBalance } = useSalesBalance(projectId ? Number(projectId) : 0)
-  const { isCreator } = useIsProjectCreator(projectId ? Number(projectId) : 0, address)
-  const { owner } = useContractOwner()
+  // Datos del proyecto seleccionado
+  const selectedProject = creatorProjectsData.find(p => p?.id === selectedProjectId)
+  const { salesBalance } = useSalesBalance(selectedProjectId ?? 0)
+  const { isCreator } = useIsProjectCreator(selectedProjectId ?? 0, address)
 
-  const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
   const canDeposit = isCreator || isOwner
   const canWithdraw = isCreator
 
@@ -584,8 +711,9 @@ function RevenueForm() {
       setDepositFormError(null)
       setRevenueAmount('')
       setEnergyKwh('0')
+      showToast(t('depositSuccess'), 'success')
     }
-  }, [depositSuccess])
+  }, [depositSuccess, showToast, t])
 
   useEffect(() => {
     if (depositError) {
@@ -603,8 +731,9 @@ function RevenueForm() {
       setWithdrawFormError(null)
       setWithdrawAmount('')
       setRecipient('')
+      showToast(t('withdrawSuccess'), 'success')
     }
-  }, [withdrawSuccess])
+  }, [withdrawSuccess, showToast, t])
 
   useEffect(() => {
     if (withdrawError) {
@@ -618,45 +747,143 @@ function RevenueForm() {
 
   const handleDepositRevenue = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectId || !revenueAmount) return
+    if (!selectedProjectId || !revenueAmount) return
     setDepositFormError(null)
     const amountWei = parseEther(revenueAmount)
-    depositRevenue(Number(projectId), Number(energyKwh), amountWei)
+    depositRevenue(selectedProjectId, Number(energyKwh), amountWei)
   }
 
   const handleWithdrawSales = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!projectId || !withdrawAmount || !recipient) return
+    if (!selectedProjectId || !withdrawAmount || !recipient) return
     setWithdrawFormError(null)
     const amountWei = parseEther(withdrawAmount)
-    withdrawSales(Number(projectId), recipient as `0x${string}`, amountWei)
+    withdrawSales(selectedProjectId, recipient as `0x${string}`, amountWei)
+  }
+
+  const handleSelectProject = (projectId: number) => {
+    setSelectedProjectId(projectId)
+    setShowProjectList(false)
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold text-foreground mb-2">
-          {t('projectId')}
-        </label>
-        <input
-          type="number"
-          value={projectId}
-          onChange={(e) => setProjectId(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-          placeholder="1"
-          min="1"
-        />
-        {projectId && project && (
-          <div className="mt-2 p-3 rounded-lg bg-muted/10 text-sm">
-            <p><span className="font-semibold">Revenue Total:</span> {formatEther(project.totalRevenue)} tSYS</p>
-            <p><span className="font-semibold">{t('salesBalance')}:</span> {salesBalance ? formatEther(salesBalance) : '0'} tSYS</p>
-            <p><span className="font-semibold">{t('energyGenerated')}:</span> {Number(project.totalEnergyKwh)} kWh</p>
+      {/* Lista de proyectos del creador */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+            <List className="w-5 h-5 text-primary" />
+            {tManage('myProjects')}
+          </h4>
+          <button
+            onClick={() => setShowProjectList(!showProjectList)}
+            className="p-2 rounded-lg hover:bg-muted/10 transition-colors"
+          >
+            {showProjectList ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {isLoadingProjects || isLoadingProjectsData ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">{tCommon('loading')}</span>
           </div>
+        ) : creatorProjectIds.length === 0 ? (
+          <div className="p-6 rounded-lg bg-muted/10 border border-border text-center">
+            <p className="text-muted-foreground">{tManage('noProjectsCreated')}</p>
+            <p className="text-sm text-muted-foreground mt-1">{tManage('createFirstProject')}</p>
+          </div>
+        ) : (
+          <>
+            {/* Lista de proyectos */}
+            {showProjectList && (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {creatorProjectsData.map((projectData) => {
+                  if (!projectData) return null
+                  const isSelected = selectedProjectId === projectData.id
+                  const projectSalesBalance = projectData.salesBalance ?? BigInt(0)
+                  return (
+                    <button
+                      key={projectData.id}
+                      onClick={() => handleSelectProject(projectData.id)}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${isSelected
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/5'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">#{projectData.id}</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {projectData.metadata.name || `${tManage('project')} #${projectData.id}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Revenue: {formatEther(projectData.project.totalRevenue)} tSYS
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-green-500">
+                            {formatEther(projectSalesBalance)} tSYS
+                          </p>
+                          <p className="text-xs text-muted-foreground">{t('salesBalance')}</p>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 
+      {/* Proyecto seleccionado */}
+      {selectedProjectId && selectedProject && (
+        <div className="p-4 rounded-lg bg-gradient-to-r from-green-500/5 to-emerald-500/5 border border-green-500/30">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-foreground text-lg">
+                  {selectedProject.metadata.name || `${tManage('project')} #${selectedProjectId}`}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  #{selectedProjectId}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setSelectedProjectId(null); setShowProjectList(true) }}
+              className="px-3 py-1 rounded-lg text-sm bg-muted/20 hover:bg-muted/30 transition-colors"
+            >
+              {tManage('changeProject')}
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">Revenue Total</p>
+              <p className="font-bold text-primary">{formatEther(selectedProject.project.totalRevenue)} tSYS</p>
+            </div>
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">{t('salesBalance')}</p>
+              <p className="font-bold text-green-500">{salesBalance ? formatEther(salesBalance) : '0'} tSYS</p>
+            </div>
+            <div className="p-2 rounded bg-background/50">
+              <p className="text-muted-foreground">{t('energyGenerated')}</p>
+              <p className="font-bold">{Number(selectedProject.project.totalEnergyKwh).toLocaleString()} kWh</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Depositar Revenue */}
-      {canDeposit && projectId && (
+      {canDeposit && selectedProjectId && (
         <form onSubmit={handleDepositRevenue} className="space-y-4 border-t border-border pt-6">
           <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-primary" />
@@ -711,7 +938,7 @@ function RevenueForm() {
           {depositSuccess && (
             <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
               <p className="text-sm text-primary font-medium text-center">
-                {t('depositSuccess')}
+                ✅ {t('depositSuccess')}
               </p>
             </div>
           )}
@@ -726,14 +953,14 @@ function RevenueForm() {
       )}
 
       {/* Retirar Ventas */}
-      {canWithdraw && projectId && (
+      {canWithdraw && selectedProjectId && (
         <form onSubmit={handleWithdrawSales} className="space-y-4 border-t border-border pt-6">
           <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
             <Download className="w-5 h-5 text-secondary" />
             {t('withdrawSales')}
           </h4>
           <p className="text-sm text-muted-foreground">
-            {t('salesBalance')}: {salesBalance ? formatEther(salesBalance) : '0'} tSYS
+            {t('salesBalance')}: <span className="font-bold text-green-500">{salesBalance ? formatEther(salesBalance) : '0'} tSYS</span>
           </p>
 
           <div>
@@ -753,13 +980,22 @@ function RevenueForm() {
             <label className="block text-sm font-semibold text-foreground mb-2">
               {t('amountToWithdraw')}
             </label>
-            <input
-              type="text"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
-              placeholder="0.5"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                placeholder="0.5"
+              />
+              <button
+                type="button"
+                onClick={() => setWithdrawAmount(salesBalance ? formatEther(salesBalance) : '0')}
+                className="px-4 py-3 rounded-lg bg-muted/20 text-muted-foreground hover:bg-muted/30 transition-colors font-medium"
+              >
+                MAX
+              </button>
+            </div>
           </div>
 
           <button
@@ -783,7 +1019,7 @@ function RevenueForm() {
           {withdrawSuccess && (
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
               <p className="text-sm text-secondary font-medium text-center">
-                {t('withdrawSuccess')}
+                ✅ {t('withdrawSuccess')}
               </p>
             </div>
           )}
@@ -796,14 +1032,6 @@ function RevenueForm() {
           )}
         </form>
       )}
-
-      {!canDeposit && !canWithdraw && projectId && (
-        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-          <p className="text-sm text-yellow-600 font-medium text-center">
-            {t('depositError')}
-          </p>
-        </div>
-      )}
     </div>
   )
 }
@@ -812,11 +1040,27 @@ function OwnerPanel() {
   const { pause, unpause, isPending, isSuccess, error } = usePauseContract()
   const { isPaused } = useContractPaused()
   const { balance } = useContractBalance()
+  const { totalSalesBalance } = useTotalSalesBalance()
+
+  // Set Energy
+  const [setEnergyProjectId, setSetEnergyProjectId] = useState('')
+  const [newTotalEnergy, setNewTotalEnergy] = useState('')
+  const [energyReason, setEnergyReason] = useState('')
+  const { setEnergy, isPending: isSettingEnergy, isSuccess: setEnergySuccess, error: setEnergyError } = useSetEnergy()
+
+  // Rescue Dust
+  const [rescueRecipient, setRescueRecipient] = useState('')
+  const { rescueDust, isPending: isRescuing, isSuccess: rescueSuccess, error: rescueError } = useRescueDust()
+
   const [formError, setFormError] = useState<string | null>(null)
+  const [setEnergyFormError, setSetEnergyFormError] = useState<string | null>(null)
+  const [rescueFormError, setRescueFormError] = useState<string | null>(null)
+
   const t = useTranslations('ownerPanel')
   const tErrors = useTranslations('errors')
   const { showToast } = useToast()
 
+  // Handle pause/unpause
   useEffect(() => {
     if (isSuccess) {
       setFormError(null)
@@ -833,16 +1077,72 @@ function OwnerPanel() {
     }
   }, [error, tErrors, showToast])
 
+  // Handle set energy
+  useEffect(() => {
+    if (setEnergySuccess) {
+      setSetEnergyFormError(null)
+      setSetEnergyProjectId('')
+      setNewTotalEnergy('')
+      setEnergyReason('')
+      showToast(t('setEnergySuccess'), 'success')
+    }
+  }, [setEnergySuccess, showToast, t])
+
+  useEffect(() => {
+    if (setEnergyError) {
+      const errorMessage = getErrorMessage(setEnergyError, tErrors)
+      if (!isUserCausedError(setEnergyError)) {
+        showToast(errorMessage, 'error')
+      }
+      setSetEnergyFormError(errorMessage)
+    }
+  }, [setEnergyError, tErrors, showToast])
+
+  // Handle rescue dust
+  useEffect(() => {
+    if (rescueSuccess) {
+      setRescueFormError(null)
+      setRescueRecipient('')
+      showToast(t('rescueDustSuccess'), 'success')
+    }
+  }, [rescueSuccess, showToast, t])
+
+  useEffect(() => {
+    if (rescueError) {
+      const errorMessage = getErrorMessage(rescueError, tErrors)
+      if (!isUserCausedError(rescueError)) {
+        showToast(errorMessage, 'error')
+      }
+      setRescueFormError(errorMessage)
+    }
+  }, [rescueError, tErrors, showToast])
+
+  const handleSetEnergy = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!setEnergyProjectId || !newTotalEnergy || !energyReason) return
+    setSetEnergyFormError(null)
+    setEnergy(Number(setEnergyProjectId), Number(newTotalEnergy), energyReason)
+  }
+
+  const handleRescueDust = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!rescueRecipient) return
+    setRescueFormError(null)
+    rescueDust(rescueRecipient as `0x${string}`)
+  }
+
   return (
     <div className="space-y-6">
+      {/* Contract Status & Pause/Unpause */}
       <div className="p-6 rounded-lg bg-gradient-to-br from-secondary/10 to-primary/10 border border-secondary/30">
         <h4 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
           <Shield className="w-5 h-5 text-secondary" />
           {t('title')}
         </h4>
 
-        <div className="mb-4 p-3 rounded-lg bg-muted/10 text-sm">
+        <div className="mb-4 p-3 rounded-lg bg-muted/10 text-sm space-y-1">
           <p><span className="font-semibold">{t('contractBalance')}:</span> {balance ? formatEther(balance) : '0'} tSYS</p>
+          <p><span className="font-semibold">{t('totalSalesBalance')}:</span> {totalSalesBalance ? formatEther(totalSalesBalance) : '0'} tSYS</p>
           <p><span className="font-semibold">{t('contractStatus')}:</span> {isPaused ? `⏸️ ${t('paused')}` : `▶️ ${t('running')}`}</p>
         </div>
 
@@ -895,6 +1195,149 @@ function OwnerPanel() {
           </div>
         )}
       </div>
+
+      {/* Set Energy (corrección de energía) */}
+      <form onSubmit={handleSetEnergy} className="p-6 rounded-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="w-5 h-5 text-yellow-500" />
+          <h4 className="font-bold text-foreground text-lg">{t('setEnergy')}</h4>
+        </div>
+        <p className="text-sm text-muted-foreground">{t('setEnergyDesc')}</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-2">
+              {t('projectId')}
+            </label>
+            <input
+              type="number"
+              value={setEnergyProjectId}
+              onChange={(e) => setSetEnergyProjectId(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-yellow-500 focus:outline-none transition-colors"
+              placeholder="1"
+              min="1"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-foreground mb-2">
+              {t('newTotalEnergy')}
+            </label>
+            <input
+              type="number"
+              value={newTotalEnergy}
+              onChange={(e) => setNewTotalEnergy(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-yellow-500 focus:outline-none transition-colors"
+              placeholder="1000"
+              min="0"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            {t('reason')}
+          </label>
+          <input
+            type="text"
+            value={energyReason}
+            onChange={(e) => setEnergyReason(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-yellow-500 focus:outline-none transition-colors"
+            placeholder={t('reasonPlaceholder')}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSettingEnergy}
+          className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isSettingEnergy ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>{t('settingEnergy')}</span>
+            </>
+          ) : (
+            <>
+              <Zap className="w-5 h-5" />
+              <span>{t('setEnergyButton')}</span>
+            </>
+          )}
+        </button>
+
+        {setEnergySuccess && (
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+            <p className="text-sm text-green-500 font-medium text-center">
+              ✅ {t('setEnergySuccess')}
+            </p>
+          </div>
+        )}
+        {setEnergyFormError && !setEnergySuccess && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+            <p className="text-sm text-red-500 font-medium text-center">
+              {setEnergyFormError}
+            </p>
+          </div>
+        )}
+      </form>
+
+      {/* Rescue Dust */}
+      <form onSubmit={handleRescueDust} className="p-6 rounded-lg bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-500/30 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Wallet className="w-5 h-5 text-purple-500" />
+          <h4 className="font-bold text-foreground text-lg">{t('rescueDust')}</h4>
+        </div>
+        <p className="text-sm text-muted-foreground">{t('rescueDustDesc')}</p>
+
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            {t('recipient')}
+          </label>
+          <input
+            type="text"
+            value={rescueRecipient}
+            onChange={(e) => setRescueRecipient(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-purple-500 focus:outline-none transition-colors"
+            placeholder="0x..."
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isRescuing}
+          className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isRescuing ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>{t('rescuingDust')}</span>
+            </>
+          ) : (
+            <>
+              <Wallet className="w-5 h-5" />
+              <span>{t('rescueDustButton')}</span>
+            </>
+          )}
+        </button>
+
+        {rescueSuccess && (
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+            <p className="text-sm text-green-500 font-medium text-center">
+              ✅ {t('rescueDustSuccess')}
+            </p>
+          </div>
+        )}
+        {rescueFormError && !rescueSuccess && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+            <p className="text-sm text-red-500 font-medium text-center">
+              {rescueFormError}
+            </p>
+          </div>
+        )}
+      </form>
     </div>
   )
 }

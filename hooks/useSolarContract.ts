@@ -1,19 +1,18 @@
 "use client"
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useReadContracts } from 'wagmi'
 import { SOLAR_TOKEN_ABI, SOLAR_TOKEN_ADDRESS } from '@/types/Abi'
-import { parseEther } from 'viem'
 
-// Tipos para el nuevo contrato SolarTokenV3Optimized
+// Tipos para el contrato SolarTokenV3Optimized
 export interface Project {
   creator: `0x${string}`
   totalSupply: bigint
   minted: bigint
   minPurchase: bigint
-  priceWei: bigint
+  priceWei: bigint  // uint128 en el nuevo contrato
   createdAt: bigint
   active: boolean
   totalEnergyKwh: bigint
-  reserved1: bigint
+  reserved1: bigint  // uint48 en el nuevo contrato
   totalRevenue: bigint
   reserved2: bigint
   rewardPerTokenStored: bigint
@@ -28,6 +27,19 @@ export interface InvestorPosition {
   tokenBalance: bigint
   claimableAmount: bigint
   totalClaimed: bigint
+}
+
+// Tipos para paginación
+export interface PaginatedPortfolioResult {
+  positions: InvestorPosition[]
+  total: bigint
+  hasMore: boolean
+}
+
+export interface PaginatedProjectsResult {
+  projectIds: bigint[]
+  total: bigint
+  hasMore: boolean
 }
 
 // Hook para obtener datos completos del proyecto
@@ -356,7 +368,7 @@ export function useClaimRevenue() {
   }
 }
 
-// Hook para reclamar revenue de múltiples proyectos (optimizado)
+// Hook para reclamar revenue de múltiples proyectos
 export function useClaimMultiple() {
   const { writeContract, data: hash, isPending, error } = useWriteContract()
 
@@ -368,7 +380,7 @@ export function useClaimMultiple() {
     writeContract({
       address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
       abi: SOLAR_TOKEN_ABI,
-      functionName: 'claimMultipleOptimized',
+      functionName: 'claimMultiple',
       args: [projectIds.map(id => BigInt(id))],
     })
   }
@@ -520,6 +532,231 @@ export function useSalesBalance(projectId: number) {
 
   return {
     salesBalance: data as bigint | undefined,
+    isLoading,
+    refetch
+  }
+}
+
+// ============ NUEVAS FUNCIONES DEL CONTRATO ============
+
+// Hook para setear energía total (solo owner) - permite corregir errores
+export function useSetEnergy() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract()
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const setEnergy = (projectId: number, newTotalEnergy: number, reason: string) => {
+    writeContract({
+      address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+      abi: SOLAR_TOKEN_ABI,
+      functionName: 'setEnergy',
+      args: [BigInt(projectId), BigInt(newTotalEnergy), reason],
+    })
+  }
+
+  return {
+    setEnergy,
+    isPending: isPending || isConfirming,
+    isSuccess,
+    error,
+    hash
+  }
+}
+
+// Hook para transferir tokens a otra dirección
+export function useTransferTokens() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract()
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const transferTokens = (to: `0x${string}`, projectId: number, amount: number) => {
+    writeContract({
+      address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+      abi: SOLAR_TOKEN_ABI,
+      functionName: 'transferTokens',
+      args: [to, BigInt(projectId), BigInt(amount)],
+    })
+  }
+
+  return {
+    transferTokens,
+    isPending: isPending || isConfirming,
+    isSuccess,
+    error,
+    hash
+  }
+}
+
+// Hook para rescatar polvo (fondos sin asignar) del contrato - solo owner
+export function useRescueDust() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract()
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const rescueDust = (recipient: `0x${string}`) => {
+    writeContract({
+      address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+      abi: SOLAR_TOKEN_ABI,
+      functionName: 'rescueDust',
+      args: [recipient],
+    })
+  }
+
+  return {
+    rescueDust,
+    isPending: isPending || isConfirming,
+    isSuccess,
+    error,
+    hash
+  }
+}
+
+// Hook para obtener el balance total de ventas de todos los proyectos
+export function useTotalSalesBalance() {
+  const { data, isLoading, refetch } = useReadContract({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getTotalSalesBalance',
+  })
+
+  return {
+    totalSalesBalance: data as bigint | undefined,
+    isLoading,
+    refetch
+  }
+}
+
+// Hook para obtener proyectos de un usuario
+export function useUserProjects(address: `0x${string}` | undefined) {
+  const { data, isLoading, refetch } = useReadContract({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getUserProjects',
+    args: address ? [address] : undefined,
+  })
+
+  return {
+    projectIds: data as bigint[] | undefined,
+    isLoading,
+    refetch
+  }
+}
+
+// Hook para obtener cantidad de proyectos de un usuario
+export function useUserProjectsCount(address: `0x${string}` | undefined) {
+  const { data, isLoading, refetch } = useReadContract({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getUserProjectsCount',
+    args: address ? [address] : undefined,
+  })
+
+  return {
+    count: data ? Number(data) : 0,
+    isLoading,
+    refetch
+  }
+}
+
+// Hook para obtener proyectos de un usuario paginados
+export function useUserProjectsPaginated(
+  address: `0x${string}` | undefined,
+  offset: number,
+  limit: number
+) {
+  const { data, isLoading, refetch } = useReadContract({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getUserProjectsPaginated',
+    args: address ? [address, BigInt(offset), BigInt(limit)] : undefined,
+  })
+
+  const result = data as [bigint[], bigint, boolean] | undefined
+
+  return {
+    projectIds: result?.[0],
+    total: result?.[1] ? Number(result[1]) : 0,
+    hasMore: result?.[2] ?? false,
+    isLoading,
+    refetch
+  }
+}
+
+// Hook para obtener proyectos creados por un usuario (donde es el creator)
+export function useCreatorProjects(address: `0x${string}` | undefined) {
+  const { nextProjectId, isLoading: isLoadingNextId } = useNextProjectId()
+
+  // Crear array de IDs de proyectos para consultar
+  const projectIds = Array.from({ length: Math.max(0, nextProjectId - 1) }, (_, i) => i + 1)
+
+  // Consultar los creadores de todos los proyectos en batch
+  const contracts = projectIds.map(id => ({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getProjectCreator' as const,
+    args: [BigInt(id)] as const,
+  }))
+
+  const { data: creatorsData, isLoading: isLoadingCreators, refetch } = useReadContracts({
+    contracts: contracts.length > 0 ? contracts : undefined,
+  })
+
+  // Filtrar proyectos donde el usuario es el creador
+  const creatorProjects: number[] = []
+  if (address && creatorsData) {
+    creatorsData.forEach((result, index) => {
+      if (result.status === 'success') {
+        const creator = result.result as `0x${string}`
+        if (creator && creator.toLowerCase() === address.toLowerCase()) {
+          creatorProjects.push(projectIds[index])
+        }
+      }
+    })
+  }
+
+  return {
+    projectIds: creatorProjects,
+    isLoading: isLoadingNextId || isLoadingCreators,
+    refetch,
+    totalProjects: nextProjectId - 1
+  }
+}
+
+// Hook para obtener datos básicos de múltiples proyectos
+export function useMultipleProjectsData(projectIds: number[]) {
+  const contracts = projectIds.map(id => ({
+    address: SOLAR_TOKEN_ADDRESS as `0x${string}`,
+    abi: SOLAR_TOKEN_ABI,
+    functionName: 'getProject' as const,
+    args: [BigInt(id)] as const,
+  }))
+
+  const { data, isLoading, refetch } = useReadContracts({
+    contracts: contracts.length > 0 ? contracts : undefined,
+  })
+
+  const projects = data?.map((result, index) => {
+    if (result.status === 'success') {
+      const [project, metadata, salesBalance, availableSupply] = result.result as [Project, ProjectMetadata, bigint, bigint]
+      return {
+        id: projectIds[index],
+        project,
+        metadata,
+        salesBalance,
+        availableSupply
+      }
+    }
+    return null
+  }).filter(Boolean) ?? []
+
+  return {
+    projects,
     isLoading,
     refetch
   }

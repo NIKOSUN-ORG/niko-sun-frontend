@@ -194,33 +194,39 @@ export function ProjectCard({ projectId }: ProjectCardProps) {
         )}
 
         {active && address && (
-          <div className="pt-4 border-t border-border">
-            <div className="flex gap-3 mb-3">
+          <div className="pt-4 border-t border-border space-y-3">
+            <div className="flex gap-2">
               <input
-                type="number"
-                min={Number(minPurchase)}
-                max={available}
-                value={amount}
-                onChange={(e) => setAmount(Math.max(Number(minPurchase), Math.min(available, Number(e.target.value))))}
-                className="flex-1 px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-semibold focus:border-primary focus:outline-none transition-colors"
-                placeholder={t('quantity')}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={amount === 0 ? '' : amount}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '')
+                  setAmount(val === '' ? 0 : Math.min(available, Number(val)))
+                }}
+                onBlur={() => {
+                  if (amount > 0 && amount < Number(minPurchase)) {
+                    setAmount(Number(minPurchase))
+                  }
+                }}
+                className={`flex-1 min-w-0 px-4 py-3 rounded-lg border-2 bg-background text-foreground font-semibold focus:outline-none transition-colors ${amount > 0 && amount < Number(minPurchase)
+                    ? 'border-yellow-500 focus:border-yellow-500'
+                    : 'border-border focus:border-primary'
+                  }`}
+                placeholder={`Mín: ${minPurchase}`}
               />
               <button
                 onClick={handleMint}
                 disabled={isPending || available === 0 || amount < Number(minPurchase)}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                className="flex-shrink-0 px-4 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>{t('buying')}</span>
-                  </>
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>{t('buyTokens')}</span>
-                  </>
+                  <ShoppingCart className="w-5 h-5" />
                 )}
+                <span className="hidden sm:inline">{isPending ? t('buying') : t('buyTokens')}</span>
               </button>
             </div>
             <p className="text-sm text-center text-muted-foreground">

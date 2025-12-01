@@ -2,11 +2,11 @@
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
-import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple, useProjectData } from '@/hooks/useSolarContract'
+import { useNextProjectId, useUserBalance, useInvestorPortfolio, useClaimMultiple, useProjectData, useTransferTokens } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
 import { getErrorMessage, isUserCausedError } from '@/utils/parseError'
-import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight, Zap } from 'lucide-react'
+import { Wallet, TrendingUp, Gift, Loader2, Coins, ArrowUpRight, Zap, Send, X } from 'lucide-react'
 
 export function UserBalance() {
   const { address, isConnected } = useAccount()
@@ -185,6 +185,15 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
   const { project, metadata, isLoading } = useProjectData(Number(projectId))
   const hasClaimable = claimableAmount > BigInt(0)
   const t = useTranslations('portfolio')
+  const tErrors = useTranslations('errors')
+  const { showToast } = useToast()
+
+  // Transfer state
+  const [showTransfer, setShowTransfer] = useState(false)
+  const [transferTo, setTransferTo] = useState('')
+  const [transferAmount, setTransferAmount] = useState('')
+  const [transferFormError, setTransferFormError] = useState<string | null>(null)
+  const { transferTokens, isPending: isTransferring, isSuccess: transferSuccess, error: transferError } = useTransferTokens()
 
   const projectName = metadata?.name || `${t('solarProject')} #${Number(projectId)}`
   const totalEnergyKwh = project?.totalEnergyKwh !== undefined ? Number(project.totalEnergyKwh) : 0
@@ -194,6 +203,39 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
   const userEnergyShare = totalSupply > 0 && totalEnergyKwh > 0
     ? (Number(tokenBalance) / totalSupply) * totalEnergyKwh
     : 0
+
+  // Handle transfer success/error
+  useEffect(() => {
+    if (transferSuccess) {
+      setTransferFormError(null)
+      setTransferTo('')
+      setTransferAmount('')
+      setShowTransfer(false)
+      showToast(t('transferSuccess'), 'success')
+    }
+  }, [transferSuccess, showToast, t])
+
+  useEffect(() => {
+    if (transferError) {
+      const errorMessage = getErrorMessage(transferError, tErrors)
+      if (!isUserCausedError(transferError)) {
+        showToast(errorMessage, 'error')
+      }
+      setTransferFormError(errorMessage)
+    }
+  }, [transferError, tErrors, showToast])
+
+  const handleTransfer = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!transferTo || !transferAmount) return
+    const amount = Number(transferAmount)
+    if (amount <= 0 || amount > Number(tokenBalance)) {
+      setTransferFormError(t('invalidAmount'))
+      return
+    }
+    setTransferFormError(null)
+    transferTokens(transferTo as `0x${string}`, Number(projectId), amount)
+  }
 
   return (
     <div
@@ -246,6 +288,83 @@ function PortfolioItem({ position, index }: { position: InvestorPosition, index:
       {totalEnergyKwh > 0 && (
         <div className="mt-2 text-xs text-muted-foreground text-center">
           {t('totalProjectEnergy')}: {totalEnergyKwh.toLocaleString()} kWh
+        </div>
+      )}
+
+      {/* Transfer Button */}
+      {Number(tokenBalance) > 0 && (
+        <div className="mt-3 pt-3 border-t border-border/50">
+          {!showTransfer ? (
+            <button
+              onClick={() => setShowTransfer(true)}
+              className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 text-blue-500 font-medium hover:bg-blue-500/20 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {t('transferTokens')}
+            </button>
+          ) : (
+            <form onSubmit={handleTransfer} className="space-y-3 animate-fade-in">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-foreground">{t('transferTokens')}</span>
+                <button
+                  type="button"
+                  onClick={() => { setShowTransfer(false); setTransferFormError(null) }}
+                  className="p-1 rounded-full hover:bg-muted/20 transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={transferTo}
+                  onChange={(e) => setTransferTo(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border-2 border-border bg-background text-foreground focus:border-blue-500 focus:outline-none transition-colors"
+                  placeholder={t('recipientAddress')}
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border-2 border-border bg-background text-foreground focus:border-blue-500 focus:outline-none transition-colors"
+                  placeholder={t('amount')}
+                  min="1"
+                  max={Number(tokenBalance)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setTransferAmount(tokenBalance.toString())}
+                  className="px-3 py-2 text-sm rounded-lg bg-muted/20 text-muted-foreground hover:bg-muted/30 transition-colors"
+                >
+                  MAX
+                </button>
+              </div>
+              <button
+                type="submit"
+                disabled={isTransferring}
+                className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isTransferring ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{t('transferring')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>{t('transfer')}</span>
+                  </>
+                )}
+              </button>
+              {transferFormError && (
+                <p className="text-xs text-red-500 text-center">{transferFormError}</p>
+              )}
+            </form>
+          )}
         </div>
       )}
     </div>
