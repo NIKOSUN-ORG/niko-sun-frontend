@@ -11,7 +11,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Syscoin](https://img.shields.io/badge/Syscoin-Testnet-orange?style=flat-square)](https://syscoin.org/)
 
-[🌐 Live Demo](https://niko-sun-frontend.vercel.app/) | English | [Español](./README.md)
+[🌐 Live Demo](https://niko-sun-frontend-fi4c.vercel.app/) | English | [Español](./README.md)
 
 </div>
 
@@ -59,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 1. **Contract Address** - Update in `types/Abi.ts`:
    ```typescript
-   export const SOLAR_TOKEN_ADDRESS = "0xFcE8D6510898854508C8f8d494e5595eD0a40184"
+   export const SOLAR_TOKEN_ADDRESS = "0x6e9fd4C2D15672594f4Eb4076d67c4D77352A512"
    ```
 
 2. **Network** - Configured for Syscoin Testnet in `rainbowKitConfig.tsx`

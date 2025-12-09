@@ -11,8 +11,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Syscoin](https://img.shields.io/badge/Syscoin-Testnet-orange?style=flat-square)](https://syscoin.org/)
 
-[🌐 Demo en Vivo](https://niko-sun-frontend.vercel.app/) | [English](./README.en.md) | Español
-
+[🌐 Demo en Vivo](https://niko-sun-frontend-fi4c.vercel.app/) | [English](./README.en.md) | Español
 </div>
 
 ---
