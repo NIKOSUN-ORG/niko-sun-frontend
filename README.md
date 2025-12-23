@@ -58,7 +58,7 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 1. **Dirección del Contrato** - Actualiza en `types/Abi.ts`:
    ```typescript
-   export const SOLAR_TOKEN_ADDRESS = "0x6e9fd4C2D15672594f4Eb4076d67c4D77352A512"
+   export const SOLAR_TOKEN_ADDRESS = "0x4C87d512B1F45C174AEc908b3C81B05A9841d883"
    ```
 
 2. **Red** - Configurada para Syscoin Testnet en `rainbowKitConfig.tsx`
