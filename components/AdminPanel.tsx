@@ -13,7 +13,6 @@ import {
   useContractPaused,
   useContractBalance,
   useSalesBalance,
-  useProjectData,
   useIsProjectCreator,
   useTransferProjectOwnership,
   useSetEnergy,
@@ -21,7 +20,6 @@ import {
   useTotalSalesBalance,
   useCreatorProjects,
   useMultipleProjectsData,
-  useNextProjectId,
 } from '@/hooks/useSolarContract'
 import { useToast } from '@/components/Toast'
 import { useTranslations } from 'next-intl'
@@ -296,8 +294,11 @@ function ManageProjectForm() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [showProjectList, setShowProjectList] = useState(true)
   const [energyDelta, setEnergyDelta] = useState('')
+  const [energyAbsolute, setEnergyAbsolute] = useState('')
+  const [energyReason, setEnergyReason] = useState('')
   const [newCreator, setNewCreator] = useState('')
-  const [updateFormError, setUpdateFormError] = useState<string | null>(null)
+  const [addFormError, setAddFormError] = useState<string | null>(null)
+  const [setFormError, setSetFormError] = useState<string | null>(null)
   const [transferFormError, setTransferFormError] = useState<string | null>(null)
   const t = useTranslations('manageProject')
   const tCommon = useTranslations('common')
@@ -305,13 +306,14 @@ function ManageProjectForm() {
   const { showToast } = useToast()
 
   // Obtener proyectos del creador
-  const { projectIds: creatorProjectIds, isLoading: isLoadingProjects, totalProjects } = useCreatorProjects(address)
+  const { projectIds: creatorProjectIds, isLoading: isLoadingProjects } = useCreatorProjects(address)
   const { projects: creatorProjectsData, isLoading: isLoadingProjectsData } = useMultipleProjectsData(creatorProjectIds)
 
   const { owner } = useContractOwner()
   const isOwner = address && owner && address.toLowerCase() === owner.toLowerCase()
 
-  const { updateEnergy, isPending: isUpdating, isSuccess: updateSuccess, error: updateError } = useUpdateEnergy()
+  const { updateEnergy, isPending: isAdding, isSuccess: addSuccess, error: addError } = useUpdateEnergy()
+  const { setEnergy, isPending: isSetting, isSuccess: setSuccess, error: setError } = useSetEnergy()
   const { setProjectStatus, isPending: isToggling, isSuccess: toggleSuccess, error: toggleError } = useSetProjectStatus()
   const { transferProjectOwnership, isPending: isTransferring, isSuccess: transferSuccess, error: transferError } = useTransferProjectOwnership()
 
@@ -320,23 +322,42 @@ function ManageProjectForm() {
   const { isCreator } = useIsProjectCreator(selectedProjectId ?? 0, address)
   const canManage = isCreator || isOwner
 
-  // Handle update energy errors
+  // Handle add energy errors
   useEffect(() => {
-    if (updateSuccess) {
-      setUpdateFormError(null)
+    if (addSuccess) {
+      setAddFormError(null)
       setEnergyDelta('')
     }
-  }, [updateSuccess])
+  }, [addSuccess])
 
   useEffect(() => {
-    if (updateError) {
-      const errorMessage = getErrorMessage(updateError, tErrors)
-      if (!isUserCausedError(updateError)) {
+    if (addError) {
+      const errorMessage = getErrorMessage(addError, tErrors)
+      if (!isUserCausedError(addError)) {
         showToast(errorMessage, 'error')
       }
-      setUpdateFormError(errorMessage)
+      setAddFormError(errorMessage)
     }
-  }, [updateError, tErrors, showToast])
+  }, [addError, tErrors, showToast])
+
+  // Handle set energy errors
+  useEffect(() => {
+    if (setSuccess) {
+      setSetFormError(null)
+      setEnergyAbsolute('')
+      setEnergyReason('')
+    }
+  }, [setSuccess])
+
+  useEffect(() => {
+    if (setError) {
+      const errorMessage = getErrorMessage(setError, tErrors)
+      if (!isUserCausedError(setError)) {
+        showToast(errorMessage, 'error')
+      }
+      setSetFormError(errorMessage)
+    }
+  }, [setError, tErrors, showToast])
 
   // Handle transfer errors
   useEffect(() => {
@@ -366,11 +387,18 @@ function ManageProjectForm() {
     }
   }, [toggleError, tErrors, showToast])
 
-  const handleUpdateEnergy = (e: React.FormEvent) => {
+  const handleAddEnergy = (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedProjectId || !energyDelta) return
-    setUpdateFormError(null)
+    setAddFormError(null)
     updateEnergy(selectedProjectId, Number(energyDelta))
+  }
+
+  const handleSetEnergy = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedProjectId || !energyAbsolute || !energyReason) return
+    setSetFormError(null)
+    setEnergy(selectedProjectId, Number(energyAbsolute), energyReason)
   }
 
   const handleToggleStatus = (active: boolean) => {
@@ -437,8 +465,8 @@ function ManageProjectForm() {
                       key={projectData.id}
                       onClick={() => handleSelectProject(projectData.id)}
                       className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${isSelected
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50 hover:bg-muted/5'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/5'
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -457,8 +485,8 @@ function ManageProjectForm() {
                         </div>
                         <div className="text-right">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${projectData.project.active
-                              ? 'bg-green-500/20 text-green-500'
-                              : 'bg-red-500/20 text-red-500'
+                            ? 'bg-green-500/20 text-green-500'
+                            : 'bg-red-500/20 text-red-500'
                             }`}>
                             {projectData.project.active ? tCommon('active') : tCommon('inactive')}
                           </span>
@@ -519,12 +547,15 @@ function ManageProjectForm() {
 
       {canManage && selectedProjectId && (
         <>
-          {/* Actualizar Energía */}
-          <form onSubmit={handleUpdateEnergy} className="space-y-4 border-t border-border pt-6">
-            <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              {t('updateEnergy')}
-            </h4>
+          {/* Añadir Energía */}
+          <form onSubmit={handleAddEnergy} className="space-y-4 border-t border-border pt-6">
+            <div>
+              <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                {t('addEnergy')}
+              </h4>
+              <p className="text-sm text-muted-foreground mt-1">{t('addEnergyDesc')}</p>
+            </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-2">
@@ -541,37 +572,111 @@ function ManageProjectForm() {
 
             <button
               type="submit"
-              disabled={isUpdating}
+              disabled={isAdding}
               className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isUpdating ? (
+              {isAdding ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{t('updating')}</span>
+                  <span>{t('adding')}</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-5 h-5" />
-                  <span>{t('updateButton')}</span>
+                  <span>{t('addButton')}</span>
                 </>
               )}
             </button>
 
-            {updateSuccess && (
+            {addSuccess && (
               <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <p className="text-sm text-primary font-medium text-center">
-                  ✅ {t('updateEnergy')}
+                  ✅ {t('addSuccess')}
                 </p>
               </div>
             )}
-            {updateFormError && !updateSuccess && (
+            {addFormError && !addSuccess && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                 <p className="text-sm text-red-500 font-medium text-center">
-                  {updateFormError}
+                  {addFormError}
                 </p>
               </div>
             )}
           </form>
+
+          {/* Establecer Energía (solo owner) */}
+          {isOwner && (
+            <form onSubmit={handleSetEnergy} className="space-y-4 border-t border-border pt-6">
+              <div>
+                <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-accent" />
+                  {t('setEnergy')}
+                </h4>
+                <p className="text-sm text-muted-foreground mt-1">{t('setEnergyDesc')}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  {t('newEnergyValue')}
+                </label>
+                <input
+                  type="number"
+                  value={energyAbsolute}
+                  onChange={(e) => setEnergyAbsolute(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                  placeholder="5000"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  Motivo de la corrección
+                </label>
+                <input
+                  type="text"
+                  value={energyReason}
+                  onChange={(e) => setEnergyReason(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border-2 border-border bg-background text-foreground font-medium focus:border-primary focus:outline-none transition-colors"
+                  placeholder="Ej: Corrección de error en medición"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSetting}
+                className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-accent to-secondary text-white font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSetting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>{t('setting')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Settings className="w-5 h-5" />
+                    <span>{t('setButton')}</span>
+                  </>
+                )}
+              </button>
+
+              {setSuccess && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <p className="text-sm text-primary font-medium text-center">
+                    ✅ {t('setSuccess')}
+                  </p>
+                </div>
+              )}
+              {setFormError && !setSuccess && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm text-red-500 font-medium text-center">
+                    {setFormError}
+                  </p>
+                </div>
+              )}
+            </form>
+          )}
 
           {/* Cambiar Estado */}
           {isCreator && (
@@ -807,8 +912,8 @@ function RevenueForm() {
                       key={projectData.id}
                       onClick={() => handleSelectProject(projectData.id)}
                       className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${isSelected
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50 hover:bg-muted/5'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/5'
                         }`}
                     >
                       <div className="flex items-center justify-between">
