@@ -58,8 +58,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Configuration
 
 1. **Contract Address** - Update in `types/Abi.ts`:
+
    ```typescript
-   export const SOLAR_TOKEN_ADDRESS = "0xA91D0F5ce84f8CbE20443B806ceF8D8116C8CEC8"
+   export const SOLAR_TOKEN_ADDRESS =
+     "0xA91D0F5ce84f8CbE20443B806ceF8D8116C8CEC8";
    ```
 
 2. **Network** - Configured for Syscoin Testnet in `rainbowKitConfig.tsx`
@@ -106,11 +108,11 @@ The contract uses the **ERC-1155** standard with **Ownable** pattern for permiss
 
 #### Roles
 
-| Role | Permissions |
-|------|-------------|
-| **Owner** | Pause/unpause, create projects for others, view global metrics |
+| Role                | Permissions                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| **Owner**           | Pause/unpause, create projects for others, view global metrics         |
 | **Project Creator** | Deposit dividends, update energy, withdraw sales, manage their project |
-| **Investor** | Buy tokens, claim dividends, view their portfolio |
+| **Investor**        | Buy tokens, claim dividends, view their portfolio                      |
 
 #### Main Functions
 
@@ -136,15 +138,15 @@ createProjectFor(creator, name, totalSupply, priceWei, minPurchase)
 
 ## 🛠️ Technologies
 
-| Technology | Version | Use |
-|------------|---------|-----|
-| [Next.js](https://nextjs.org/) | 16 | React Framework |
-| [TypeScript](https://www.typescriptlang.org/) | 5 | Static typing |
-| [Tailwind CSS](https://tailwindcss.com/) | 4 | Styles |
-| [wagmi](https://wagmi.sh/) | 2.x | Ethereum Hooks |
-| [viem](https://viem.sh/) | 2.x | Ethereum Client |
-| [RainbowKit](https://www.rainbowkit.com/) | 2.x | Wallet connection |
-| [Lucide React](https://lucide.dev/) | - | Icons |
+| Technology                                    | Version | Use               |
+| --------------------------------------------- | ------- | ----------------- |
+| [Next.js](https://nextjs.org/)                | 16      | React Framework   |
+| [TypeScript](https://www.typescriptlang.org/) | 5       | Static typing     |
+| [Tailwind CSS](https://tailwindcss.com/)      | 4       | Styles            |
+| [wagmi](https://wagmi.sh/)                    | 2.x     | Ethereum Hooks    |
+| [viem](https://viem.sh/)                      | 2.x     | Ethereum Client   |
+| [RainbowKit](https://www.rainbowkit.com/)     | 2.x     | Wallet connection |
+| [Lucide React](https://lucide.dev/)           | -       | Icons             |
 
 ---
 
@@ -176,6 +178,20 @@ pnpm lint         # ESLint linter
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
 ```
 
+#### How to get your WalletConnect (Reown) Project ID?
+
+To connect your wallet using WalletConnect, you need a valid **Project ID**. This ID is free and can be obtained from [WalletConnect Cloud (Reown)](https://cloud.walletconnect.com/):
+
+1. Go to https://cloud.walletconnect.com/ and sign up or log in.
+2. Create a new project.
+3. Copy the generated `Project ID`.
+4. Add it to your `.env` file as:
+   ```env
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
+   ```
+
+This ID is **required** for wallet connection to work properly in both development and production.
+
 ---
 
 ## 🐛 Troubleshooting
@@ -200,11 +216,11 @@ pnpm dev
 
 ## 🎨 Color Palette
 
-| Color | Hex | Use |
-|-------|-----|-----|
-| 🟢 Primary | `#10b981` | Renewable energy |
-| 🟠 Secondary | `#f97316` | Sun and energy |
-| 🟡 Accent | `#fbbf24` | Sunlight |
+| Color        | Hex       | Use              |
+| ------------ | --------- | ---------------- |
+| 🟢 Primary   | `#10b981` | Renewable energy |
+| 🟠 Secondary | `#f97316` | Sun and energy   |
+| 🟡 Accent    | `#fbbf24` | Sunlight         |
 
 ---
 

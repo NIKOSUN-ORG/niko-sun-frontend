@@ -12,6 +12,7 @@
 [![Syscoin](https://img.shields.io/badge/Syscoin-Testnet-orange?style=flat-square)](https://syscoin.org/)
 
 [🌐 Demo en Vivo](https://niko-sun-frontend-fi4c.vercel.app/) | [English](./README.en.md) | Español
+
 </div>
 
 ---
@@ -57,8 +58,10 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ### Configuración
 
 1. **Dirección del Contrato** - Actualiza en `types/Abi.ts`:
+
    ```typescript
-   export const SOLAR_TOKEN_ADDRESS = "0xA91D0F5ce84f8CbE20443B806ceF8D8116C8CEC8"
+   export const SOLAR_TOKEN_ADDRESS =
+     "0xA91D0F5ce84f8CbE20443B806ceF8D8116C8CEC8";
    ```
 
 2. **Red** - Configurada para Syscoin Testnet en `rainbowKitConfig.tsx`
@@ -105,11 +108,11 @@ El contrato utiliza el estándar **ERC-1155** con patrón **Ownable** para la ge
 
 #### Roles
 
-| Rol | Permisos |
-|-----|----------|
-| **Owner** | Pausar/despausar, crear proyectos para otros, ver métricas globales |
+| Rol                 | Permisos                                                                        |
+| ------------------- | ------------------------------------------------------------------------------- |
+| **Owner**           | Pausar/despausar, crear proyectos para otros, ver métricas globales             |
 | **Project Creator** | Depositar dividendos, actualizar energía, retirar ventas, gestionar su proyecto |
-| **Inversor** | Comprar tokens, reclamar dividendos, ver su portafolio |
+| **Inversor**        | Comprar tokens, reclamar dividendos, ver su portafolio                          |
 
 #### Funciones Principales
 
@@ -135,15 +138,15 @@ createProjectFor(creator, name, totalSupply, priceWei, minPurchase)
 
 ## 🛠️ Tecnologías
 
-| Tecnología | Versión | Uso |
-|------------|---------|-----|
-| [Next.js](https://nextjs.org/) | 16 | Framework React |
-| [TypeScript](https://www.typescriptlang.org/) | 5 | Tipado estático |
-| [Tailwind CSS](https://tailwindcss.com/) | 4 | Estilos |
-| [wagmi](https://wagmi.sh/) | 2.x | Hooks Ethereum |
-| [viem](https://viem.sh/) | 2.x | Cliente Ethereum |
-| [RainbowKit](https://www.rainbowkit.com/) | 2.x | Conexión wallets |
-| [Lucide React](https://lucide.dev/) | - | Iconos |
+| Tecnología                                    | Versión | Uso              |
+| --------------------------------------------- | ------- | ---------------- |
+| [Next.js](https://nextjs.org/)                | 16      | Framework React  |
+| [TypeScript](https://www.typescriptlang.org/) | 5       | Tipado estático  |
+| [Tailwind CSS](https://tailwindcss.com/)      | 4       | Estilos          |
+| [wagmi](https://wagmi.sh/)                    | 2.x     | Hooks Ethereum   |
+| [viem](https://viem.sh/)                      | 2.x     | Cliente Ethereum |
+| [RainbowKit](https://www.rainbowkit.com/)     | 2.x     | Conexión wallets |
+| [Lucide React](https://lucide.dev/)           | -       | Iconos           |
 
 ---
 
@@ -175,6 +178,20 @@ pnpm lint         # Linter ESLint
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=tu_project_id
 ```
 
+#### ¿Cómo obtener tu Project ID de WalletConnect (Reown)?
+
+Para conectar tu wallet usando WalletConnect, necesitas un **Project ID** válido. Este ID se obtiene gratis en la plataforma [WalletConnect Cloud (Reown)](https://cloud.walletconnect.com/):
+
+1. Ingresa a https://cloud.walletconnect.com/ y regístrate o inicia sesión.
+2. Crea un nuevo proyecto.
+3. Copia el `Project ID` generado.
+4. Añádelo en tu archivo `.env` como:
+   ```env
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=tu_project_id
+   ```
+
+Este ID es **obligatorio** para que la conexión de wallets funcione correctamente en desarrollo y producción.
+
 ---
 
 ## 🐛 Solución de Problemas
@@ -199,11 +216,11 @@ pnpm dev
 
 ## 🎨 Paleta de Colores
 
-| Color | Hex | Uso |
-|-------|-----|-----|
-| 🟢 Primary | `#10b981` | Energía renovable |
-| 🟠 Secondary | `#f97316` | Sol y energía |
-| 🟡 Accent | `#fbbf24` | Luz solar |
+| Color        | Hex       | Uso               |
+| ------------ | --------- | ----------------- |
+| 🟢 Primary   | `#10b981` | Energía renovable |
+| 🟠 Secondary | `#f97316` | Sol y energía     |
+| 🟡 Accent    | `#fbbf24` | Luz solar         |
 
 ---
 
